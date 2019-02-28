@@ -1,0 +1,16 @@
+[
+{
+  "modid": "exppipes",
+  "name": "Exponentialistics Pipes",
+  "description": "Mod with pipes and exponential resource usage. On your computer I mean.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Ihamfp"],
+  "credits": "RS485 for Logistics Pipes",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

@@ -1,0 +1,7 @@
+itemGroup.exppipes.pipes=Exponentialistics Pipes
+
+tile.exppipes:blockpipe.name=Pipe
+tile.exppipes:blockroutingpipe.name=Routing pipe
+tile.exppipes:blockproviderpipe.name=Provider pipe
+tile.exppipes:blocksupplierpipe.name=Supplier pipe
+tile.exppipes:blockrequestpipe.name=Request pipe

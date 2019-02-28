@@ -1,0 +1,6 @@
+{
+	"parent": "exppipes:block/pipe_side",
+	"textures": {
+		"texture": "exppipes:blocks/routingpipe"
+	}
+}

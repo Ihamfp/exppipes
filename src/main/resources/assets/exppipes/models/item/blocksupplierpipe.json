@@ -1,0 +1,6 @@
+{
+    "parent": "exppipes:item/pipe_center",
+    "textures": {
+        "texture": "exppipes:blocks/supplierpipe"
+    }
+}
