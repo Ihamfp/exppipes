@@ -3,6 +3,9 @@ package ihamfp.exppipes.containers;
 import java.io.IOException;
 
 import ihamfp.exppipes.ExppipesMod;
+import ihamfp.exppipes.common.network.PacketFilterChange;
+import ihamfp.exppipes.common.network.PacketFilterChange.FilterFunction;
+import ihamfp.exppipes.common.network.PacketHandler;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
 import net.minecraft.client.gui.GuiButton;
@@ -10,27 +13,28 @@ import net.minecraft.inventory.Container;
 import net.minecraft.util.ResourceLocation;
 
 public class GuiContainerPipeConfig extends GuiContainerDecorated {
-	private static final boolean showButtons = false; // set to true to test client->server sync
-	
 	public static final int WIDTH = 176;
 	public static final int HEIGHT = 168;
 	
 	public static final ResourceLocation background = new ResourceLocation(ExppipesMod.MODID, "textures/gui/pipeconfig.png");
 	
 	public ConfigRoutingPipe conf = null;
+	public String confTitle = "Pipe configuration";
 	
 	public GuiContainerPipeConfig(Container inventorySlotsIn) {
 		super(inventorySlotsIn);
 		if (inventorySlotsIn instanceof ContainerPipeConfig) {
 			 this.conf = ((ContainerPipeConfig)inventorySlotsIn).te.sinkConfig;
+			 this.confTitle = "Sink configuration";
 		} else {
 			ExppipesMod.logger.error("No associated config found - displaying empty gui");
 		}
 	}
 	
-	public GuiContainerPipeConfig(Container inventorySlotsIn, ConfigRoutingPipe conf) {
+	public GuiContainerPipeConfig(Container inventorySlotsIn, ConfigRoutingPipe conf, String confTitle) {
 		super(inventorySlotsIn);
 		this.conf = conf;
+		this.confTitle = confTitle;
 		if (conf == null) {
 			ExppipesMod.logger.error("No associated config found - displaying empty gui");
 		}
@@ -39,7 +43,6 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 	@Override
 	public void initGui() {
 		super.initGui();
-		if (!showButtons) return;
 		
 		if (conf == null) return;
 		for (int i=0;i<9;i++) { // config buttons
@@ -50,7 +53,6 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 	}
 	
 	public void updateButtonText(ConfigRoutingPipe conf) {
-		if (!showButtons) return;
 		if (conf == null) return;
 		for (int i=0;i<9;i++) { // config buttons
 			int priority = 0;
@@ -73,7 +75,7 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
 		mc.getTextureManager().bindTexture(background);
 		drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize);
-		this.fontRenderer.drawString("Sink Configuration", guiLeft+8, guiTop+6, 0x7f7f7f);
+		this.fontRenderer.drawString(this.confTitle, guiLeft+8, guiTop+6, 0x7f7f7f);
 		this.updateButtonText(conf); // Should maybe replace it with a less resource-intensive way... But I didn't find one
 	}
 
@@ -81,11 +83,10 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
 		super.drawGuiContainerForegroundLayer(mouseX, mouseY);
 		
-		if (!showButtons) return;
 		for (GuiButton button : this.buttonList) {
 			if (button.isMouseOver() && button.enabled && button.visible) {
 				if (button.id%2 == 0) { // priority
-					this.drawHoveringText("Priority", mouseX, mouseY);
+					this.drawHoveringText("Priority", mouseX-guiLeft, mouseY-guiTop);
 				} else {
 					FilterType filterType = FilterType.DEFAULT;
 					if (this.inventorySlots instanceof ContainerPipeConfig) {
@@ -93,7 +94,7 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 							filterType = conf.filters.get(button.id/2).filterType;
 						}
 					}
-					this.drawHoveringText("Filter: " + filterType.toString(), mouseX, mouseY);
+					this.drawHoveringText("Filter: " + filterType.toString(), mouseX-guiLeft, mouseY-guiTop);
 				}
 			}
 		}
@@ -102,13 +103,15 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 	@Override
 	protected void actionPerformed(GuiButton button) throws IOException {
 		super.actionPerformed(button);
-		if (!showButtons) return;
 		
 		if (conf != null) {
 			if (button.id%2 == 1 && conf.filters.size() > button.id/2) { // filter type
 				FilterType current = conf.filters.get(button.id/2).filterType; //FilterType.fromShortString(button.displayString);
 				FilterType next = FilterType.values()[(current.ordinal()+1)%FilterType.values().length]; // cycle through
-				conf.filters.get(button.id/2).filterType = next; // TODO sync to server
+				conf.filters.get(button.id/2).filterType = next;
+			}
+			if (((ContainerPipeConfig)inventorySlots).te != null) {
+				PacketHandler.INSTANCE.sendToServer(new PacketFilterChange(((ContainerPipeConfig)inventorySlots).te.getPos(), button.id/2, conf.filters.get(button.id/2).priority, this.confTitle.equals("Sink configuration")?FilterFunction.FILTER_SINK:FilterFunction.FILTER_SUPPLY)); // TODO clean this shit
 			}
 		}
 		this.updateButtonText(conf);

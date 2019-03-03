@@ -14,7 +14,6 @@ import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -112,26 +111,6 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 		
 		if (te.invCache == null) return;
 		
-		RenderHelper.disableStandardItemLighting();
-		RenderHelper.enableGUIStandardItemLighting();
-		ItemStack[] stacksToDisplay = this.te.invCache.keySet().toArray(new ItemStack[] {});
-		for (int i=0; i<Integer.min(itemsPerPage, stacksToDisplay.length-this.page*itemsPerPage); i++) {
-			int xGrid = i%9;
-			int yGrid = i/9;
-			int x = guiLeft+8+xGrid*18;
-			int y = guiTop+18+yGrid*18;
-			this.itemRender.renderItemIntoGUI(stacksToDisplay[i+this.page*itemsPerPage], x, y);
-			this.itemRender.renderItemOverlayIntoGUI(fontRenderer, stacksToDisplay[i+this.page*itemsPerPage], x, y, te.invCache.get(stacksToDisplay[i+this.page*itemsPerPage]).toString());
-		}
-		RenderHelper.enableStandardItemLighting();
-		
-		if (this.selected >= 0) {
-			// just a small check, doesn't hurt much
-			if (te.invCache.keySet().size() <= this.selected + this.page*itemsPerPage) {
-				this.selected = -1;
-			}
-			mc.getTextureManager().bindTexture(background);
-			drawTexturedModalRect(guiLeft+7+(this.selected%9)*18, guiTop+17+(this.selected/9)*18, 238, 0, 18, 18);
-		}
+		this.drawItemSelector(guiLeft+8, guiTop+18, 9, 6, this.te.invCache, this.selected, this.page, mouseX, mouseY);
 	}
 }

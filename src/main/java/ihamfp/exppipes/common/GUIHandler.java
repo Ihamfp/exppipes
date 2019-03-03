@@ -39,9 +39,9 @@ public class GUIHandler implements IGuiHandler {
 		
 		switch (ID)	{
 		case 1: // sink config
-			return new GuiContainerPipeConfig(new ContainerPipeConfig(player.inventory, (TileEntityRoutingPipe) te, ((TileEntityRoutingPipe) te).sinkConfig), ((TileEntityRoutingPipe) te).sinkConfig);
+			return new GuiContainerPipeConfig(new ContainerPipeConfig(player.inventory, (TileEntityRoutingPipe) te, ((TileEntityRoutingPipe) te).sinkConfig), ((TileEntityRoutingPipe) te).sinkConfig, "Sink configuration");
 		case 2:
-			return new GuiContainerPipeConfig(new ContainerPipeConfig(player.inventory, (TileEntityRoutingPipe) te, ((TileEntitySupplierPipe) te).supplyConfig), ((TileEntitySupplierPipe) te).supplyConfig);
+			return new GuiContainerPipeConfig(new ContainerPipeConfig(player.inventory, (TileEntityRoutingPipe) te, ((TileEntitySupplierPipe) te).supplyConfig), ((TileEntitySupplierPipe) te).supplyConfig, "Supply configuration");
 		case 3:
 			return new GuiContainerPipeRequest(new ContainerPipeRequest(player.inventory, (TileEntityRequestPipe)te), (TileEntityRequestPipe)te);
 		default:

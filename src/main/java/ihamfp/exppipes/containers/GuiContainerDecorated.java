@@ -2,13 +2,16 @@ package ihamfp.exppipes.containers;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Map;
 
 import ihamfp.exppipes.ExppipesMod;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.inventory.Container;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidTank;
@@ -101,6 +104,38 @@ public abstract class GuiContainerDecorated extends GuiContainer {
 			GlStateManager.color(red/255.0f, green/255.0f, blue/255.0f);
 			drawTexturedModalRect(x+1, y+25-level, 77, 60-level, 1, level);
 			GlStateManager.color(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+	}
+	
+	public void drawItemSelector(int x, int y, int gridW, int gridH, Map<ItemStack,Integer> stacks, int selected, int page, int mouseX, int mouseY) {
+		int itemsPerPage = gridW*gridH;
+		
+		if (selected >= 0 && selected < stacks.size()) {
+			mc.getTextureManager().bindTexture(decoration);
+			drawTexturedModalRect(x-1+((selected)%gridW)*18, y-1+((selected)/gridW)*18, 1, 73, 18, 18);
+		}
+		
+		RenderHelper.disableStandardItemLighting();
+		RenderHelper.enableGUIStandardItemLighting();
+		ItemStack[] stacksToDisplay = stacks.keySet().toArray(new ItemStack[] {});
+		
+		ItemStack toolTipStack = null;
+		for (int i=0; i<Integer.min(itemsPerPage, stacksToDisplay.length-page*itemsPerPage); i++) {
+			int stackDrawn = i+page*itemsPerPage;
+			int xGrid = i%gridW;
+			int yGrid = i/gridW;
+			int ix = x+xGrid*18;
+			int iy = y+yGrid*18;
+			this.itemRender.renderItemIntoGUI(stacksToDisplay[i+page*itemsPerPage], ix, iy);
+			this.itemRender.renderItemOverlayIntoGUI(fontRenderer, stacksToDisplay[stackDrawn], ix, iy, stacks.get(stacksToDisplay[stackDrawn]).toString());
+			if (mouseX > ix && mouseX < ix+18 && mouseY > iy && mouseY < iy+18) {
+				toolTipStack = stacksToDisplay[stackDrawn];
+			}
+		}
+		RenderHelper.enableStandardItemLighting();
+		
+		if (toolTipStack != null) {
+			this.renderToolTip(toolTipStack, mouseX, mouseY);
 		}
 	}
 }
