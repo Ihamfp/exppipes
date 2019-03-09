@@ -23,7 +23,7 @@
         },
         {
         	"when": { "hasnetwork": "false" },
-        	"apply": { "model": "exppipes:pipe_nonetwork", "uvlock": false }
+        	"apply": { "model": "exppipes:blockpipe_nonetwork", "uvlock": false }
         }
     ]
 }

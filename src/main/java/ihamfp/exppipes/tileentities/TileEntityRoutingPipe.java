@@ -145,9 +145,9 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 			}
 		}
 		if (this.network != null) {
-			//ExppipesMod.logger.info(this.pos.toString() + " now in network " + this.network.toString());
+			ExppipesMod.logger.trace(this.pos.toString() + " now in network " + this.network.toString());
 		} else {
-			//ExppipesMod.logger.info(this.pos.toString() + " has no network");
+			ExppipesMod.logger.trace(this.pos.toString() + " has no network");
 		}
 	}
 	
@@ -177,14 +177,11 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 			this.network.requests.removeAll(toRemove);
 		}
 		
-		
-		List<ItemDirection> toRemove = new ArrayList<ItemDirection>();
 		for (ItemDirection i : this.itemHandler.storedItems) {
-			//if (i.timer > 0) continue;
 			if (i.itemStack == null) continue;
 			ExppipesMod.logger.trace(" - " + i.itemStack.toString() + ", dest: " + ((i.destination != null)?(i.destination.getPos().toString()):"null") + ", now at " + this.pos.toString());
 			// First, check if the item is already on its destination node
-			if (i.destination == this) {
+			if (i.destination == this && i.to == null) {
 				ExppipesMod.logger.trace(i.itemStack.toString() + " arrived at destination @ " + this.getPos().toString());
 				// check all sides for non-pipes inventories
 				for (EnumFacing e : EnumFacing.VALUES) {
@@ -193,11 +190,8 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 					if (this.world.getTileEntity(checking) instanceof TileEntityPipe) continue; // pipe here
 					if (!this.world.getTileEntity(checking).hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, e.getOpposite())) continue; // no inventory here
 					
-					i.itemStack = insertInto(this.world.getTileEntity(checking).getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, e.getOpposite()), i);
-					if (i.itemStack.isEmpty()) {
-						toRemove.add(i);
-						break;
-					}
+					i.to = e;
+					break;
 				}
 			// Then, check if it should be redirected to the default route
 			} else if (i.destination == null && this.network != null) {
@@ -206,36 +200,17 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 				ExppipesMod.logger.trace("Destination found: " + ((i.destination!=null)?i.destination.getPos().toString():"null"));
 			}
 			
-			if (this.world.getTotalWorldTime() - i.insertTime < PipeItemHandler.travelTime) continue; // ignore if not ready
-			
 			// Finally, try to route the item properly
-			if (this.network != null && i.destination != null && !toRemove.contains(i)) {
+			if (this.network != null && i.destination != null && i.to == null) {
 				EnumFacing path = this.network.getShortestFace(this, i.destination);
 				if (path == null) {
 					ExppipesMod.logger.trace("no route to " + i.destination.getPos().toString() + " from " + this.getPos().toString());
 					i.destination = null; // destination either doesn't exist anymore or isn't reachable. Aborting.
 					continue;
 				}
-				IItemHandler dest = this.world.getTileEntity(this.pos.offset(path)).getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, path.getOpposite());
-				
-				if (!(dest instanceof IItemHandler)) {
-					ExppipesMod.logger.trace("Item should be send to " + path.getName() + " but TileEntity is " + ((dest != null) ? dest.toString():"null"));
-					i.destination = null;
-					continue;
-				}
-				ExppipesMod.logger.trace("Sending " + i.itemStack.toString() + " to " + path.getName());
-				
-				if (dest instanceof WrappedItemHandler) {
-					i.from = path.getOpposite();
-					((WrappedItemHandler)dest).handler.insertItemFromPipe(i);
-				} else {
-					this.insertInto(dest, i);
-				}
-				
-				toRemove.add(i);
+				i.to = path;
 			}
 		}
-		this.itemHandler.storedItems.removeAll(toRemove);
 		super.serverUpdate();
 	}
 	

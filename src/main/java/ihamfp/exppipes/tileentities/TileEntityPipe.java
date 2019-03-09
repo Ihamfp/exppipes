@@ -46,11 +46,15 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 			((PipeItemHandler) itemHandler).insertItemFromPipe(stack);
 			return ItemStack.EMPTY;
 		}
+		
+		ItemStack itemStack = stack.itemStack;
+		if (simulate) itemStack = itemStack.copy();
+		
 		for (int j=0; j<itemHandler.getSlots();j++) {
-			stack.itemStack = itemHandler.insertItem(j, stack.itemStack, simulate); // try to insert in all slots
-			if (stack.itemStack.isEmpty()) break; // nothing left, exit slots loop
+			itemStack = itemHandler.insertItem(j, itemStack, simulate); // try to insert in all slots
+			if (itemStack.isEmpty()) break; // nothing left, exit slots loop
 		}
-		return stack.itemStack;
+		return itemStack;
 	}
 	
 	ItemStack insertInto(IItemHandler itemHandler, ItemDirection stack) {
@@ -116,34 +120,57 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 		EnumFacing[] faceOrder = EnumFacing.VALUES.clone();
 		
 		for (ItemDirection i : this.itemHandler.storedItems) {
-			if (this.world.getTotalWorldTime() - i.insertTime < PipeItemHandler.travelTime) continue; // ignore if not ready
-			//ExppipesMod.logger.info("[tick " + Long.toString(this.world.getWorldTime()) +"]Got " + i.itemStack.toString() + " from " + i.from.getName());
-			Collections.shuffle(Arrays.asList(faceOrder));
-			for (EnumFacing e : faceOrder) {
-				if (e == i.from) continue;
-				BlockPos target = this.pos.offset(e);
-				if (this.world.getTileEntity(target) == null) continue;
-				//ExppipesMod.logger.info("Trying to insert to " + e.getName() + "...");
-				
-				if (!this.world.getTileEntity(target).hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, e.getOpposite())) continue;
-				
-				IItemHandler targetItemHandler = this.world.getTileEntity(target).getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, e.getOpposite());
-				//if (targetItemHandler == null) continue; // prevent nullPointer, just in case
-				
-				//ExppipesMod.logger.info("Inserting " + i.itemStack.toString() + " from " + this.pos.toString() + " to " + target.toString() + ", " + targetItemHandler.getClass().getSimpleName());
-
-				//ExppipesMod.logger.info("[" + this.pos.toString() +" @ " + Long.toString(this.world.getWorldTime()) + "]Inserting item from " + i.from.getName() + " to " + e.getName() + " (target's " + e.getOpposite().getName() + ")");
-				if (targetItemHandler instanceof WrappedItemHandler) {
-					i.from = e.getOpposite();
-					((WrappedItemHandler)targetItemHandler).handler.insertItemFromPipe(i);
-					toRemove.add(i);
-					break;
+			if (i.insertTime > this.world.getTotalWorldTime()) {
+				i.insertTime = this.world.getTotalWorldTime()-PipeItemHandler.travelTime;
+			}
+			
+			if (i.itemStack.isEmpty() || i.itemStack.getItem() == Items.AIR) { // It's air, who gives a fuck
+				toRemove.add(i);
+			} else if ((this.world.getTotalWorldTime() - i.insertTime) > PipeItemHandler.travelTime && i.to != null) { // send it to destination
+				BlockPos target = this.pos.offset(i.to);
+				if (this.world.getTileEntity(target) == null || !this.world.getTileEntity(target).hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, i.to.getOpposite())) {
+					i.to = null;
+					continue;
 				}
 				
-				i.itemStack = insertInto(targetItemHandler, i);
-				if (i.itemStack.isEmpty() || i.itemStack.getItem() == Items.AIR) {
+				IItemHandler targetItemHandler = this.world.getTileEntity(target).getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, i.to.getOpposite());
+				
+				if (targetItemHandler instanceof WrappedItemHandler) {
+					i.from = i.to.getOpposite();
+					i.to = null;
+					((WrappedItemHandler)targetItemHandler).handler.insertItemFromPipe(i);
 					toRemove.add(i);
-					break; // nothing left, exit facing loop
+				} else {
+					i.itemStack = insertInto(targetItemHandler, i);
+					if (i.itemStack.isEmpty() || i.itemStack.getItem() == Items.AIR) {
+						toRemove.add(i);
+					} else {
+						i.from = i.to;
+						i.to = null;
+						i.insertTime = this.world.getTotalWorldTime();
+					}
+				}
+			} else if (i.to == null) { // search where to send to
+				Collections.shuffle(Arrays.asList(faceOrder));
+				for (EnumFacing e : faceOrder) {
+					if (e == i.from) continue;
+					BlockPos target = this.pos.offset(e);
+					if (this.world.getTileEntity(target) == null) continue;
+					
+					if (!this.world.getTileEntity(target).hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, e.getOpposite())) continue;
+					
+					IItemHandler targetItemHandler = this.world.getTileEntity(target).getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, e.getOpposite());
+					
+					if (targetItemHandler instanceof WrappedItemHandler) {
+						i.to = e;
+						break;
+					}
+					
+					ItemStack stack = insertInto(targetItemHandler, i, true);
+					if (i.itemStack.getCount() != stack.getCount()) {
+						i.to = e;
+						break;
+					}
 				}
 			}
 		}
@@ -173,7 +200,6 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	@Override
 	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
 		if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
-			//ExppipesMod.logger.info("I has items @ [" + this.pos.toString() + "] from " + facing.getName());
 			return true;
 		}
 		return super.hasCapability(capability, facing);
@@ -184,10 +210,8 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
 		if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
 			if (facing == null) {
-				//ExppipesMod.logger.info("Returning self item handler");
 				return (T) this.itemHandler;
 			}
-			//ExppipesMod.logger.info("Returning wrapped item handler");
 			return (T) (new WrappedItemHandler(facing, this.itemHandler));
 		}
 		return super.getCapability(capability, facing);

@@ -1,0 +1,22 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"cgc",
+		"g g",
+		"cgc"
+	],
+	"key": {
+		"g": {
+			"type": "forge:ore_dict",
+			"ore": "blockGlass"
+		},
+		"c": {
+			"type": "forge:ore_dict",
+			"ore": "cobblestone"
+		}
+	},
+	"result": {
+		"item": "exppipes:blockpipe",
+		"count": 8
+	}
+}

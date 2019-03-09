@@ -1,0 +1,21 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		" r ",
+		"rpr",
+		" r "
+	],
+	"key": {
+		"r": {
+			"type": "forge:ore_dict",
+			"ore": "dustRedstone"
+		},
+		"o": {
+			"item": "exppipes:blockpipe"
+		}
+	},
+	"result": {
+		"item": "exppipes:blockroutingpipe",
+		"count": 1
+	}
+}

@@ -76,6 +76,9 @@ public class PipeItemHandler implements IItemHandler, INBTSerializable<NBTTagCom
 			NBTTagCompound entry = new NBTTagCompound();
 			itemDir.itemStack.writeToNBT(entry);
 			entry.setByte("from", (byte)itemDir.from.getIndex()); // getIndex() return 0-5 anyway
+			if (itemDir.to != null) {
+				entry.setByte("to", (byte)itemDir.to.getIndex());
+			}
 			entry.setLong("insertTime", itemDir.insertTime);
 			if (itemDir.destination != null && !itemDir.destination.isInvalid()) {
 				BlockPos destPos = itemDir.destination.getPos();
@@ -104,11 +107,15 @@ public class PipeItemHandler implements IItemHandler, INBTSerializable<NBTTagCom
 		for (int i=0; i<nbt.getInteger("size"); i++) {
 			NBTTagCompound entry = nbtList.getCompoundTagAt(i);
 			EnumFacing from = EnumFacing.byIndex(entry.getByte("from"));
+			EnumFacing to = null;
+			if (entry.hasKey("to")) {
+				to = EnumFacing.byIndex(entry.getByte("to"));
+			}
 			ItemStack item = new ItemStack(entry);
 			long insertTime = entry.getLong("insertTime");
 			
 			if (!entry.hasKey("destination") || world == null) {
-				this.storedItems.add(new ItemDirection(item, from, null, insertTime)); // cannot get the world, cannot get the destination
+				this.storedItems.add(new ItemDirection(item, from, to, null, insertTime)); // cannot get the world, cannot get the destination
 				continue;
 			}
 			
@@ -116,7 +123,7 @@ public class PipeItemHandler implements IItemHandler, INBTSerializable<NBTTagCom
 			TileEntity destTE = world.getTileEntity(new BlockPos(destPos[0], destPos[1], destPos[2]));
 			int timer = entry.getInteger("timer");
 			if (destTE.isInvalid() || !(destTE instanceof TileEntityRoutingPipe)) {
-				this.storedItems.add(new ItemDirection(item, from, null, timer)); // cannot get the world, cannot get the destination
+				this.storedItems.add(new ItemDirection(item, from, to, null, timer)); // cannot get the world, cannot get the destination
 				continue;
 			}
 			

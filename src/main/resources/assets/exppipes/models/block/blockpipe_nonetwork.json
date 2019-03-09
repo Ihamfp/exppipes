@@ -1,0 +1,6 @@
+{
+	"parent": "exppipes:block/pipe_nonetwork",
+	"textures": {
+		"texture": "exppipes:blocks/pipe"
+	}
+}

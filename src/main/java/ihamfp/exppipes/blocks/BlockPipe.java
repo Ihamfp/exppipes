@@ -7,6 +7,7 @@ import java.util.Map;
 
 import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.ModCreativeTabs;
+import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.PipeNetwork;
 import ihamfp.exppipes.tileentities.TileEntityPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
@@ -16,6 +17,8 @@ import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.EntityItem;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
@@ -73,6 +76,7 @@ public class BlockPipe extends Block {
 		this.setRegistryName(ExppipesMod.MODID, registryID);
 		this.setCreativeTab(ModCreativeTabs.PIPES);
 		this.setLightOpacity(0);
+		this.setHardness(0.5f);
 		this.setDefaultState(this.getDefaultState()
 				.withProperty(connUP,    false)
 				.withProperty(connDOWN,  false)
@@ -100,6 +104,14 @@ public class BlockPipe extends Block {
 				super.breakBlock(worldIn, pos, state);
 				return;
 			}
+			// spawn items
+			if (te instanceof TileEntityPipe) {
+				((TileEntityPipe)te).itemHandler.tick(worldIn.getTotalWorldTime());
+				for (ItemDirection itemDir : ((TileEntityPipe)te).itemHandler.storedItems) {
+					worldIn.spawnEntity(new EntityItem(worldIn, pos.getX(), pos.getY(), pos.getZ(), itemDir.itemStack));
+				}
+			}
+			
 			// search for routing nodes, rebuild/split corresponding networks
 			List<BlockPos> foundPipes = new ArrayList<BlockPos>();
 			foundPipes.add(te.getPos());
@@ -122,6 +134,13 @@ public class BlockPipe extends Block {
 			PipeNetwork.split(foundNodes);
 		}
 		super.breakBlock(worldIn, pos, state);
+	}
+	
+	
+
+	@Override
+	public boolean canHarvestBlock(IBlockAccess world, BlockPos pos, EntityPlayer player) {
+		return true;
 	}
 
 	@Override

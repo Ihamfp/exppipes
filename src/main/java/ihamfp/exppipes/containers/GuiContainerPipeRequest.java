@@ -77,7 +77,7 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 		super.actionPerformed(button);
 		if (button.id == 0 && selected >= 0) { // request
 			ItemStack stack = this.getSelectedItem();
-			PacketHandler.INSTANCE.sendToServer(new PacketItemRequest(te.getPos(), new FilterConfig(stack, FilterType.DEFAULT)));
+			PacketHandler.INSTANCE.sendToServer(new PacketItemRequest(te.getPos(), new FilterConfig(stack, FilterType.STRICT)));
 			this.te.invCache.put(stack, this.te.invCache.get(stack)-1);
 			if (this.te.invCache.get(stack) == 0) {
 				this.te.invCache.remove(stack);

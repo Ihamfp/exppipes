@@ -30,23 +30,22 @@ public class TESRPipe extends TileEntitySpecialRenderer<TileEntityPipe> {
 			GlStateManager.scale(5/16D, 5/16D, 5/16D); // slightly smaller that 6/16
 			
 			for (ItemDirection stackDir : te.itemHandler.storedItems) {
-				float fTimer = (float)(te.getWorld().getTotalWorldTime() - stackDir.insertTime) + partialTicks;
+				float fTimer = (float)(te.getWorld().getTotalWorldTime() - stackDir.insertTime -1) + partialTicks;
 				
-				float partial = (fTimer / (float)PipeItemHandler.travelTime);
-				if (partial > 1.0f) partial = 0.5f;
+				float partial = (fTimer / (float)PipeItemHandler.travelTime)-0.5f;
+				if (partial > 1.0f || partial < -1.0f) partial = 0.0f;
 				float mvx = 0.0f;
 				float mvy = 0.0f;
 				float mvz = 0.0f;
-				if (partial < 0.5f) { // don't divide travelTime by 2, results may be ... surprising
-					partial = 1.0f - partial;
+				if (partial < 0.0f || stackDir.to == null) {
+					partial = -partial;
 					mvx = partial*stackDir.from.getXOffset();
 					mvy = partial*stackDir.from.getYOffset();
 					mvz = partial*stackDir.from.getZOffset();
-				} else { // TODO: destination direction
-					partial = 1.0f - partial;
-					mvx = partial*stackDir.from.getXOffset();
-					mvy = partial*stackDir.from.getYOffset();
-					mvz = partial*stackDir.from.getZOffset();
+				} else {
+					mvx = partial*stackDir.to.getXOffset();
+					mvy = partial*stackDir.to.getYOffset();
+					mvz = partial*stackDir.to.getZOffset();
 				}
 				GlStateManager.translate(mvx, mvy, mvz);
 				renderItem.renderItem(stackDir.itemStack, ItemCameraTransforms.TransformType.NONE);

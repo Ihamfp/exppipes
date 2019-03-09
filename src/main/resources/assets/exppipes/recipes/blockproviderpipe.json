@@ -1,0 +1,16 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"ingredients":[
+		{
+			"item": "exppipes:blockroutingpipe"
+		},
+		{
+			"type": "forge:ore_dict",
+			"ore": "ingotIron"
+		}
+	],
+	"result": {
+		"item": "exppipes:blockproviderpipe",
+		"count": 1
+	}
+}

@@ -10,7 +10,8 @@ import net.minecraft.util.EnumFacing;
  */
 public class ItemDirection {
 	public ItemStack itemStack;
-	public EnumFacing from;
+	public EnumFacing from; // where the stack is coming from
+	public EnumFacing to;   // where the stack will be sent when time is up
 	public long insertTime;
 	
 	/***
@@ -25,8 +26,13 @@ public class ItemDirection {
 	public Request request;
 	
 	public ItemDirection(ItemStack itemStack, EnumFacing from, TileEntityRoutingPipe dest, long insertTime) {
+		this(itemStack, from, null, dest, insertTime);
+	}
+	
+	public ItemDirection(ItemStack itemStack, EnumFacing from, EnumFacing to, TileEntityRoutingPipe dest, long insertTime) {
 		this.itemStack = itemStack;
 		this.from = from;
+		this.to = to; // will be set in pipe update
 		this.destination = dest;
 		this.insertTime = insertTime;
 	}
