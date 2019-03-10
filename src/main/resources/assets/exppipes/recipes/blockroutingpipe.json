@@ -10,7 +10,7 @@
 			"type": "forge:ore_dict",
 			"ore": "dustRedstone"
 		},
-		"o": {
+		"p": {
 			"item": "exppipes:blockpipe"
 		}
 	},
