@@ -2,9 +2,10 @@ package ihamfp.exppipes.containers;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.List;
 
 import ihamfp.exppipes.ExppipesMod;
+import ihamfp.exppipes.tileentities.InvCacheEntry;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderHelper;
@@ -107,7 +108,7 @@ public abstract class GuiContainerDecorated extends GuiContainer {
 		}
 	}
 	
-	public void drawItemSelector(int x, int y, int gridW, int gridH, Map<ItemStack,Integer> stacks, int selected, int page, int mouseX, int mouseY) {
+	public void drawItemSelector(int x, int y, int gridW, int gridH, List<InvCacheEntry> stacks, int selected, int page, int mouseX, int mouseY) {
 		int itemsPerPage = gridW*gridH;
 		
 		if (selected >= 0 && selected < stacks.size()) {
@@ -117,19 +118,18 @@ public abstract class GuiContainerDecorated extends GuiContainer {
 		
 		RenderHelper.disableStandardItemLighting();
 		RenderHelper.enableGUIStandardItemLighting();
-		ItemStack[] stacksToDisplay = stacks.keySet().toArray(new ItemStack[] {});
 		
 		ItemStack toolTipStack = null;
-		for (int i=0; i<Integer.min(itemsPerPage, stacksToDisplay.length-page*itemsPerPage); i++) {
+		for (int i=0; i<Integer.min(itemsPerPage, stacks.size()-page*itemsPerPage); i++) {
 			int stackDrawn = i+page*itemsPerPage;
 			int xGrid = i%gridW;
 			int yGrid = i/gridW;
 			int ix = x+xGrid*18;
 			int iy = y+yGrid*18;
-			this.itemRender.renderItemIntoGUI(stacksToDisplay[i+page*itemsPerPage], ix, iy);
-			this.itemRender.renderItemOverlayIntoGUI(fontRenderer, stacksToDisplay[stackDrawn], ix, iy, stacks.get(stacksToDisplay[stackDrawn]).toString());
+			this.itemRender.renderItemIntoGUI(stacks.get(stackDrawn).stack, ix, iy);
+			this.itemRender.renderItemOverlayIntoGUI(fontRenderer, stacks.get(stackDrawn).stack, ix, iy, Integer.toString(stacks.get(stackDrawn).count));
 			if (mouseX > ix && mouseX < ix+18 && mouseY > iy && mouseY < iy+18) {
-				toolTipStack = stacksToDisplay[stackDrawn];
+				toolTipStack = stacks.get(stackDrawn).stack;
 			}
 		}
 		RenderHelper.enableStandardItemLighting();

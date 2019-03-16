@@ -2,19 +2,18 @@ package ihamfp.exppipes.containers;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
 
 import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.common.network.PacketHandler;
 import ihamfp.exppipes.common.network.PacketInventoryRequest;
 import ihamfp.exppipes.common.network.PacketItemRequest;
+import ihamfp.exppipes.tileentities.InvCacheEntry;
 import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.inventory.Container;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 
@@ -23,6 +22,12 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 	public static final int HEIGHT = 231;
 	
 	public static final int itemsPerPage = 54;
+	
+	/*
+	 * true: sort by ID
+	 * false: sort by count
+	 */
+	public static boolean sortID = false;
 	
 	protected int page = 0; // 1 page = 54 items 6*9
 	protected int selected = -1; // -1 = nothing selected.
@@ -41,7 +46,7 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 	@Override
 	public void initGui() {
 		if (te.invCache == null) {
-			te.invCache = new HashMap<ItemStack,Integer>();
+			te.invCache = new ArrayList<InvCacheEntry>();
 			PacketHandler.INSTANCE.sendToServer(new PacketInventoryRequest(te.getPos()));
 		}
 		super.initGui();
@@ -49,7 +54,7 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 		this.addButton(new GuiButton(1, guiLeft+6, guiTop+128, 64, 18, "Refresh"));
 		this.addButton(new GuiButton(2, guiLeft+164, guiTop+4, 6, 11, ">")); // next page
 		this.addButton(new GuiButton(3, guiLeft+136, guiTop+4, 6, 11, "<")); // previous page
-		//this.addButton(new GuiButton(2, guiLeft+73, guiTop+128, 30, 18, "Sort"));
+		this.addButton(new GuiButton(4, guiLeft+73, guiTop+128, 30, 18, "Sort"));
 	}
 	
 	@Override
@@ -61,26 +66,26 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 			int gridX = clickX/18;
 			int gridY = clickY/18;
 			this.selected = gridX + gridY*9;
-			if (te.invCache.keySet().size() <= this.selected + this.page*itemsPerPage) {
-				this.selected = -1;
-			}
+			
+			if (te.invCache.size() <= this.selected + this.page*itemsPerPage) this.selected = -1;
 		}
 	}
 
 	public ItemStack getSelectedItem() {
 		if (selected < 0) return null;
-		return (ItemStack)te.invCache.keySet().toArray()[selected + page*itemsPerPage];
+		return te.invCache.get(selected + page*itemsPerPage).stack;
 	}
 	
 	@Override
 	protected void actionPerformed(GuiButton button) throws IOException {
 		super.actionPerformed(button);
 		if (button.id == 0 && selected >= 0) { // request
-			ItemStack stack = this.getSelectedItem();
-			PacketHandler.INSTANCE.sendToServer(new PacketItemRequest(te.getPos(), new FilterConfig(stack, FilterType.STRICT)));
-			this.te.invCache.put(stack, this.te.invCache.get(stack)-1);
-			if (this.te.invCache.get(stack) == 0) {
-				this.te.invCache.remove(stack);
+			InvCacheEntry entry = te.invCache.get(selected + page*itemsPerPage);
+			PacketHandler.INSTANCE.sendToServer(new PacketItemRequest(te.getPos(), new FilterConfig(entry.stack, FilterType.STRICT)));
+			
+			entry.count--;
+			if (entry.count == 0) {
+				this.te.invCache.remove(entry);
 			}
 		} else if (button.id == 1) {
 			this.selected = -1;
@@ -97,8 +102,12 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 				this.page = 0;
 			}
 		} else if (button.id == 4) {
-			List<Integer> invCount = new ArrayList<Integer>(this.te.invCache.values());
-			Collections.sort(invCount);
+			sortID = !sortID;
+			if (sortID) { // sort by id
+				te.invCache.sort((a,b) -> Item.getIdFromItem(a.stack.getItem()) - Item.getIdFromItem(b.stack.getItem()));
+			} else {
+				te.invCache.sort((a,b) -> b.count - a.count); // reverse count
+			}
 		}
 	}
 
@@ -112,5 +121,8 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 		if (te.invCache == null) return;
 		
 		this.drawItemSelector(guiLeft+8, guiTop+18, 9, 6, this.te.invCache, this.selected, this.page, mouseX, mouseY);
+		if (this.buttonList.get(4).isMouseOver()) { // sorting by id/count
+			this.drawHoveringText("Sorting by " + (sortID?"ID":"count"), mouseX, mouseY);
+		}
 	}
 }

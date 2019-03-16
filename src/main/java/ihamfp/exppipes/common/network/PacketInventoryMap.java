@@ -1,9 +1,14 @@
 package ihamfp.exppipes.common.network;
 
+import java.util.ArrayList;
+
+import ihamfp.exppipes.containers.GuiContainerPipeRequest;
+import ihamfp.exppipes.tileentities.InvCacheEntry;
 import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -53,7 +58,14 @@ public class PacketInventoryMap implements IMessage {
 				if (!(tile instanceof TileEntityRequestPipe)) return;
 				TileEntityRequestPipe terp = (TileEntityRequestPipe)tile;
 				
-				terp.invCache.put(message.stack, message.count);
+				if (terp.invCache == null) terp.invCache = new ArrayList<InvCacheEntry>();
+				terp.invCache.add(new InvCacheEntry(message.stack, message.count));
+				
+				if (GuiContainerPipeRequest.sortID) { // sort by id
+					terp.invCache.sort((a,b) -> Item.getIdFromItem(a.stack.getItem()) - Item.getIdFromItem(b.stack.getItem()));
+				} else {
+					terp.invCache.sort((a,b) -> b.count - a.count); // reverse count
+				}
 			});
 			return null;
 		}

@@ -18,9 +18,8 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.fml.common.Optional;
 
 public class TileEntityRequestPipe extends TileEntityRoutingPipe {
-	
 	@SideOnly(Side.CLIENT)
-	public Map<ItemStack,Integer> invCache = null; // Filled when a packet is received. Used for the request pipe GUI
+	public List<InvCacheEntry> invCache = null; // Filled when a packet is received. Used for the request pipe GUI
 	
 	// opencomputers integration
 	

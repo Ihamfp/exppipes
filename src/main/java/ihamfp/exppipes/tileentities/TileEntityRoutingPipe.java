@@ -227,12 +227,18 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
 		this.sinkConfig.deserializeNBT(compound.getCompoundTag("config"));
+		if (this.network != null && this.network.nodes.size() > 0 && this.network.nodes.get(0) == this) {
+			this.network.deserializeNBT(compound.getCompoundTag("network"), getWorld());
+		}
 		super.readFromNBT(compound);
 	}
 
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setTag("config", this.sinkConfig.serializeNBT());
+		if (this.network != null && this.network.nodes.size() > 0 && this.network.nodes.get(0) == this) {
+			compound.setTag("network", this.network.serializeNBT());
+		}
 		return super.writeToNBT(compound);
 	}
 	

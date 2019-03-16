@@ -3,7 +3,7 @@
 ... is a mod-independant pipe system, similar to [LogisticsPipes](https://github.com/RS485/LogisticsPipes/tree/dev-mc1122) but with:
  * [OpenComputers](https://oc.cil.li/) support
  * Light models for blocks and items (not multi-kilobytes obj files I mean)
- * No next-gen, not working recipes. In fact, no recipes at all.
+ * No next-gen, not working recipes
  * Not a single line of code stolen from Buildcraft
 
 *Wait a minute, this is just a incomplete and bad copy of Logistics Pipes ?*

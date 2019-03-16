@@ -3,6 +3,7 @@ package ihamfp.exppipes.pipenetwork;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -14,13 +15,27 @@ import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.tileentities.TileEntityProviderPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
+import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
+import net.minecraftforge.common.util.INBTSerializable;
 
-public class PipeNetwork {
+public class PipeNetwork implements INBTSerializable<NBTTagCompound> {
 	public List<TileEntityRoutingPipe> nodes = new ArrayList<TileEntityRoutingPipe>();
 	public List<TileEntityProviderPipe> providers = new ArrayList<TileEntityProviderPipe>();
 	
+	/* TODO massive requests redesign:
+	 *  - each pipe will manage its own requests
+	 *  - every pending requests will still be available via the network
+	 *  - requests will be directly sent to the highest priority providing/routing pipe
+	 */
 	public class Request {
 		/**
 		 * The {@link TileEntityRoutingPipe} that requested the itemstack.
@@ -244,5 +259,73 @@ public class PipeNetwork {
 	
 	public void endRequest(Request req) {
 		this.requests.remove(req);
+	}
+	
+	// NBT Serialization used to save the requests
+	
+	@Override
+	public NBTTagCompound serializeNBT() {
+		NBTTagCompound networkNBT = new NBTTagCompound();
+		
+		NBTTagList reqList = new NBTTagList();
+		for (Request req : this.requests) {
+			NBTTagCompound entry = new NBTTagCompound();
+			
+			NBTTagCompound filter = new NBTTagCompound();
+			req.filter.stack.writeToNBT(filter);
+			filter.setByte("filterType", (byte)req.filter.filterType.ordinal());
+			filter.setInteger("priority", req.filter.priority);
+			entry.setTag("filter", filter);
+			
+			entry.setBoolean("handled", req.handled.get());
+			entry.setBoolean("completed", req.completed);
+			
+			BlockPos requester = req.requester.getPos();
+			int[] posXYZ = {requester.getX(), requester.getY(), requester.getZ()};
+			entry.setIntArray("requester", posXYZ);
+			
+			reqList.appendTag(entry);
+		}
+		networkNBT.setTag("requests", reqList);
+		
+		return networkNBT;
+	}
+
+	@Override
+	public void deserializeNBT(NBTTagCompound nbt) {
+		// don't do anything, we need a world here
+	}
+	
+	public void deserializeNBT(NBTTagCompound nbt, World world) {
+		NBTTagList reqList = nbt.getTagList("requests", Constants.NBT.TAG_COMPOUND);
+		
+		Iterator<NBTBase> reqIt = reqList.iterator();
+		
+		this.requests.clear();
+		while (reqIt.hasNext()) {
+			NBTTagCompound entry = (NBTTagCompound)reqIt.next();
+			NBTTagCompound filter = (NBTTagCompound)entry.getTag("filter");
+
+			ItemStack filterStack = new ItemStack(filter);
+			FilterType filterType = FilterType.values()[filter.getByte("filterType")];
+			int filterPriority = filter.getInteger("priority");
+			
+			FilterConfig reqFilter = new FilterConfig(filterStack, filterType, filterPriority);
+			
+			boolean handled = entry.getBoolean("handled");
+			boolean completed = entry.getBoolean("completed");
+			
+			int[] requester = entry.getIntArray("requester");
+			TileEntity reqTE = world.getTileEntity(new BlockPos(requester[0], requester[1], requester[2]));
+			if (reqTE.isInvalid() || !(reqTE instanceof TileEntityRoutingPipe)) {
+				continue;
+			}
+			
+			Request request = new Request((TileEntityRoutingPipe)reqTE, reqFilter);
+			request.handled.set(handled);
+			request.completed = completed;
+			
+			this.requests.add(request);
+		}
 	}
 }

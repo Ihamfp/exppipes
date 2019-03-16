@@ -3,23 +3,15 @@ package ihamfp.exppipes.tileentities;
 import java.util.Map;
 
 import ihamfp.exppipes.ExppipesMod;
+import ihamfp.exppipes.Utils;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.PipeNetwork.Request;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.items.CapabilityItemHandler;
 
 public class TileEntityProviderPipe extends TileEntityRoutingPipe {
-	// could be prettier and put in a common class but who cares, it works
-	public static EnumFacing faceFromPos(BlockPos from, BlockPos to) {
-		for (EnumFacing f : EnumFacing.VALUES) {
-			if (from.offset(f).equals(to)) return f;
-		}
-		return null;
-	}
-	
 	@Override
 	public void serverUpdate() {
 		if (this.network != null && !this.network.providers.contains(this) && this.network.nodes.contains(this)) {
@@ -35,7 +27,7 @@ public class TileEntityProviderPipe extends TileEntityRoutingPipe {
 						if (r.filter.doesMatch(stack) && r.filter.stack.getCount() <= stack.getCount() && inventories.get(stack) != r.requester) { // possible candidate
 							if (r.handled.getAndSet(true)) break; // someone else was faster... abort
 							
-							EnumFacing dir = faceFromPos(this.pos, inventories.get(stack).getPos());
+							EnumFacing dir = Utils.faceFromPos(this.pos, inventories.get(stack).getPos());
 							ItemStack exStack;
 							if (dir == null) {
 								ExppipesMod.logger.info("[" + this.toString() + "]Extracting from a weird place: " + inventories.get(stack));
