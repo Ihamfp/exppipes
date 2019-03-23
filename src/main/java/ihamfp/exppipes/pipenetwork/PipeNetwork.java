@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.tileentities.TileEntityProviderPipe;
@@ -18,47 +17,6 @@ import net.minecraft.util.EnumFacing;
 public class PipeNetwork {
 	public List<TileEntityRoutingPipe> nodes = new ArrayList<TileEntityRoutingPipe>();
 	public List<TileEntityProviderPipe> providers = new ArrayList<TileEntityProviderPipe>();
-	
-	public class Request {
-		/**
-		 * Used in crafting trees, can (and will, most likely) be null
-		 */
-		public Request parent = null;
-		/**
-		 * The {@link TileEntittyRoutingPipe} that requested the itemstack.
-		 * If null, set the {@link ItemDirection.destination} to null so that the item is sent to the default route
-		 */
-		public TileEntityRoutingPipe requester;
-		/**
-		 * The requested ItemStack filter
-		 */
-		public FilterConfig filter;
-		/**
-		 * Constant, the total requested item count
-		 */
-		public int requestedCount;
-		/**
-		 * The currently processing item count
-		 * Increased when a crafting pipe starts crafting or when a provider inserts items on the network.
-		 * Decreased when requested items are received by the requester.
-		 */
-		public AtomicInteger processingCount = new AtomicInteger(0);
-		/**
-		 * The processed count, increased by the requester on items reception.
-		 */
-		public int processedCount = 0;
-		
-		public Request(TileEntityRoutingPipe requester, FilterConfig filter, int requestedCount) {
-			this.requester = requester;
-			this.filter = filter;
-			this.requestedCount = requestedCount;
-		}
-		
-		public Request(TileEntityRoutingPipe requester, FilterConfig filter, int requestedCount, Request parent) {
-			this(requester, filter, requestedCount);
-			this.parent = parent;
-		}
-	}
 	
 	public CopyOnWriteArrayList<Request> requests = new CopyOnWriteArrayList<Request>();
 	

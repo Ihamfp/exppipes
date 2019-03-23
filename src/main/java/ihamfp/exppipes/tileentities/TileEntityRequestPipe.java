@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import ihamfp.exppipes.pipenetwork.ItemDirection;
-import ihamfp.exppipes.pipenetwork.PipeNetwork.Request;
+import ihamfp.exppipes.pipenetwork.Request;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
 import li.cil.oc.api.machine.Arguments;
@@ -14,6 +14,8 @@ import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
@@ -48,6 +50,27 @@ public class TileEntityRequestPipe extends TileEntityRoutingPipe {
 		}
 
 		super.serverUpdate();
+	}
+	
+	@Override
+	public void readFromNBT(NBTTagCompound compound) {
+		if (this.network != null) this.network.requests.removeAll(this.requests);
+		NBTTagList requests = compound.getTagList("requests", NBT.TAG_COMPOUND);
+		for (int i=0; i<requests.tagCount();i++) {
+			this.requests.add(new Request(this, (NBTTagCompound) requests.get(i)));
+		}
+		if (this.network != null) this.network.requests.addAll(this.requests);
+		super.readFromNBT(compound);
+	}
+
+	@Override
+	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+		NBTTagList requests = new NBTTagList();
+		for (Request req : this.requests) {
+			requests.appendTag(req.serializeNBT());
+		}
+		compound.setTag("requests", requests);
+		return super.writeToNBT(compound);
 	}
 	
 	// opencomputers integration

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import ihamfp.exppipes.pipenetwork.ItemDirection;
-import ihamfp.exppipes.pipenetwork.PipeNetwork.Request;
+import ihamfp.exppipes.pipenetwork.Request;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
@@ -15,7 +15,9 @@ import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
@@ -60,7 +62,7 @@ public class TileEntitySupplierPipe extends TileEntityRoutingPipe {
 		if (this.requests.size() == 0) { // temporary
 			for (FilterConfig filter : supplyConfig.filters) {
 				if (!invContains(inv, filter) && this.network != null && !this.requests.containsKey(filter) && this.canInsert(filter.stack)) {
-					this.requests.put(filter, this.network.request(this, new FilterConfig(filter.stack.copy(), filter.filterType), 1));
+					this.requests.put(filter, this.network.request(this, filter, 1));
 					break;
 				}
 			}
@@ -68,7 +70,7 @@ public class TileEntitySupplierPipe extends TileEntityRoutingPipe {
 		if (this.requests.size() == 0) {
 			for (FilterConfig filter : supplyConfig.computerFilters) {
 				if (!invContains(inv, filter) && this.network != null && !this.requests.containsKey(filter) && this.canInsert(filter.stack)) {
-					this.requests.put(filter, this.network.request(this, new FilterConfig(filter.stack.copy(), filter.filterType), 1));
+					this.requests.put(filter, this.network.request(this, filter, 1));
 					break;
 				}
 			}
@@ -78,12 +80,30 @@ public class TileEntitySupplierPipe extends TileEntityRoutingPipe {
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
 		this.supplyConfig.deserializeNBT(compound.getCompoundTag("supplyConfig"));
+		if (this.network != null) this.network.requests.removeAll(this.requests.values());
+		this.requests.clear();
+		NBTTagList requests = compound.getTagList("requests", NBT.TAG_COMPOUND);
+		for (int i=0; i<requests.tagCount();i++) {
+			NBTTagCompound extReq = (NBTTagCompound) requests.get(i);
+			this.requests.put(this.supplyConfig.filters.get(extReq.getInteger("supplierFilter")), new Request(this, extReq));
+		}
+		if (this.network != null) this.network.requests.addAll(this.requests.values());
 		super.readFromNBT(compound);
 	}
 
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setTag("supplyConfig", this.supplyConfig.serializeNBT());
+		NBTTagList requests = new NBTTagList();
+		for (FilterConfig reqFilter : this.requests.keySet()) {
+			Request req = this.requests.get(reqFilter);
+			NBTTagCompound extReq = req.serializeNBT();
+			int filterID = this.supplyConfig.filters.indexOf(reqFilter);
+			if (filterID < 0) continue; // no matching supply filter
+			extReq.setInteger("supplierFilter", filterID);
+			requests.appendTag(extReq);
+		}
+		compound.setTag("requests", requests);
 		return super.writeToNBT(compound);
 	}
 	

@@ -1,6 +1,6 @@
 package ihamfp.exppipes.common.network;
 
-import ihamfp.exppipes.pipenetwork.PipeNetwork.Request;
+import ihamfp.exppipes.pipenetwork.Request;
 import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;

@@ -2,9 +2,11 @@ package ihamfp.exppipes.tileentities.pipeconfig;
 
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.oredict.OreDictionary;
 
-public class FilterConfig {
+public class FilterConfig implements INBTSerializable<NBTTagCompound> {
 	/***
 	 * DEFAULT: match on ItemStack.areItemsEqual (Item and meta ==)
 	 * FUZZY: match on Item == only
@@ -73,6 +75,10 @@ public class FilterConfig {
 		this.priority = priority;
 	}
 	
+	public FilterConfig(NBTTagCompound nbt) {
+		this(new ItemStack(nbt), FilterType.values()[nbt.getByte("filterType")], nbt.getInteger("priority"));
+	}
+	
 	/***
 	 * True if the stack passes the filter.
 	 * {@link Items.AIR} means "everything"
@@ -119,5 +125,21 @@ public class FilterConfig {
 		default:
 			return false;
 		}
+	}
+
+	@Override
+	public NBTTagCompound serializeNBT() {
+		NBTTagCompound tag = new NBTTagCompound();
+		this.stack.writeToNBT(tag);
+		tag.setByte("filterType", (byte)this.filterType.ordinal());
+		tag.setInteger("priority", this.priority);
+		return tag;
+	}
+
+	@Override
+	public void deserializeNBT(NBTTagCompound nbt) {
+		this.stack = new ItemStack(nbt);
+		this.filterType = FilterType.values()[nbt.getByte("filterType")];
+		this.priority = nbt.getInteger("priority");
 	}
 }

@@ -4,7 +4,7 @@ import java.util.Map;
 
 import ihamfp.exppipes.Utils;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
-import ihamfp.exppipes.pipenetwork.PipeNetwork.Request;
+import ihamfp.exppipes.pipenetwork.Request;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;

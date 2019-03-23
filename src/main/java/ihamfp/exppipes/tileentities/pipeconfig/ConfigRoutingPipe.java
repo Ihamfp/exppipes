@@ -3,7 +3,6 @@ package ihamfp.exppipes.tileentities.pipeconfig;
 import java.util.ArrayList;
 import java.util.List;
 
-import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -39,19 +38,13 @@ public class ConfigRoutingPipe implements INBTSerializable<NBTTagCompound> {
 	public NBTTagCompound serializeNBT() {
 		NBTTagList filterList = new NBTTagList();
 		for (FilterConfig filter : this.filters) {
-			NBTTagCompound entry = new NBTTagCompound();
-			filter.stack.writeToNBT(entry);
-			entry.setByte("filterType", (byte)filter.filterType.ordinal());
-			entry.setInteger("priority", filter.priority);
+			NBTTagCompound entry = filter.serializeNBT();
 			entry.setBoolean("computer", false);
 			
 			filterList.appendTag(entry);
 		}
 		for (FilterConfig filter : this.computerFilters) {
-			NBTTagCompound entry = new NBTTagCompound();
-			filter.stack.writeToNBT(entry);
-			entry.setByte("filterType", (byte)filter.filterType.ordinal());
-			entry.setInteger("priority", filter.priority);
+			NBTTagCompound entry = filter.serializeNBT();
 			entry.setBoolean("computer", true);
 			
 			filterList.appendTag(entry);
@@ -70,13 +63,10 @@ public class ConfigRoutingPipe implements INBTSerializable<NBTTagCompound> {
 		this.filters.clear();
 		for (int i=0; i<nbt.getInteger("size");i++) {
 			NBTTagCompound entry = filterList.getCompoundTagAt(i);
-			ItemStack filterStack = new ItemStack(entry);
-			FilterType filterType = FilterType.values()[entry.getByte("filterType")];
-			int priority = entry.getInteger("priority");
 			if (entry.hasKey("computer") && entry.getBoolean("computer")) {
-				this.computerFilters.add(new FilterConfig(filterStack, filterType, priority));
+				this.computerFilters.add(new FilterConfig(entry));
 			} else {
-				this.filters.add(new FilterConfig(filterStack, filterType, priority));
+				this.filters.add(new FilterConfig(entry));
 			}
 		}
 	}
