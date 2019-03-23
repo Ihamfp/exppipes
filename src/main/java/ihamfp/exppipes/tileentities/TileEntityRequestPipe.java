@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ihamfp.exppipes.pipenetwork.ItemDirection;
+import ihamfp.exppipes.pipenetwork.PipeNetwork.Request;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
 import li.cil.oc.api.machine.Arguments;
@@ -12,14 +14,41 @@ import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import net.minecraftforge.fml.common.Optional;
 
 public class TileEntityRequestPipe extends TileEntityRoutingPipe {
 	@SideOnly(Side.CLIENT)
 	public List<InvCacheEntry> invCache = null; // Filled when a packet is received. Used for the request pipe GUI
+	
+	public List<Request> requests = new ArrayList<Request>();
+	
+	@Override
+	public void serverUpdate() {
+		// remove all completed requests
+		this.itemHandler.tick(this.world.getTotalWorldTime());
+		List<Request> rRemove = new ArrayList<Request>();
+		for (Request r : this.requests) {
+			for (ItemDirection itemDir : itemHandler.storedItems) {
+				if (itemDir.destination == this && (this.world.getTotalWorldTime()-itemDir.insertTime)>=PipeItemHandler.travelTime && r.filter.doesMatch(itemDir.itemStack)) {
+					r.processingCount.addAndGet(-itemDir.itemStack.getCount());
+					if (r.processingCount.get() < 0) r.processingCount.set(0);
+					r.processedCount += itemDir.itemStack.getCount();
+				}
+			}
+			if (r.processedCount >= r.requestedCount) {
+				rRemove.add(r);
+			}
+		}
+		this.requests.removeAll(rRemove);
+		if (this.network != null) {
+			this.network.requests.removeAll(rRemove);
+		}
+
+		super.serverUpdate();
+	}
 	
 	// opencomputers integration
 	
@@ -33,9 +62,9 @@ public class TileEntityRequestPipe extends TileEntityRoutingPipe {
     @Callback(doc = "function(string:item, [integer:quantity=1, [string:filterType=\"DEFAULT\", [integer:meta=0, [string:nbtString=\"\"]]]]); Request something on the network")
     public Object[] request(Context context, Arguments args) throws Exception {
 		String item = args.checkString(0);
-		ItemStack stack = GameRegistry.makeItemStack(item, args.optInteger(3, 0), args.optInteger(1, 1), args.optString(4, ""));
+		ItemStack stack = GameRegistry.makeItemStack(item, args.optInteger(3, 0), 1, args.optString(4, ""));
 		FilterConfig filter = new FilterConfig(stack, FilterType.fromString(args.optString(2, "DEFAULT")));
-		this.network.request(this, filter);
+		this.requests.add(this.network.request(this, filter, args.optInteger(1, 1)));
 		return null;
 	}
 	

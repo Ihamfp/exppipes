@@ -8,7 +8,6 @@ import java.util.Map;
 import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.PipeNetwork;
-import ihamfp.exppipes.pipenetwork.PipeNetwork.Request;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
@@ -25,12 +24,12 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
 
 /***
  * Each routing pipe is a node in the network.
@@ -72,7 +71,8 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 			if (handler instanceof PipeItemHandler || handler instanceof WrappedItemHandler) continue; // do not check pipes, prevents a lot of duplication
 			
 			for (int i=0; i<handler.getSlots();i++) {
-				ItemStack inSlot = handler.extractItem(i, handler.getSlotLimit(i), true); // only check what can be extracted
+				//ItemStack inSlot = handler.extractItem(i, handler.getSlotLimit(i), true); // only check what can be extracted
+				ItemStack inSlot = handler.getStackInSlot(i);
 				if (inSlot.isEmpty()) continue;
 				if (invs.containsKey(inSlot)) break; // do not keep checking, it's probably a multiblock.
 				invs.put(inSlot, te);
@@ -167,15 +167,6 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		this.nextUpdate--;
 		
 		this.itemHandler.tick(this.world.getTotalWorldTime());
-		if (this.network != null && this.network.nodes != null && this.network.nodes.get(0) == this) { // here: things to do once per tick on the network
-			List<Request> toRemove = new ArrayList<Request>();
-			for (Request req : this.network.requests) {
-				if (req.completed || req.filter.stack.isEmpty()) {
-					toRemove.add(req);
-				}
-			}
-			this.network.requests.removeAll(toRemove);
-		}
 		
 		for (ItemDirection i : this.itemHandler.storedItems) {
 			if (i.itemStack == null) continue;
@@ -227,18 +218,12 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
 		this.sinkConfig.deserializeNBT(compound.getCompoundTag("config"));
-		if (this.network != null && this.network.nodes.size() > 0 && this.network.nodes.get(0) == this) {
-			this.network.deserializeNBT(compound.getCompoundTag("network"), getWorld());
-		}
 		super.readFromNBT(compound);
 	}
 
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setTag("config", this.sinkConfig.serializeNBT());
-		if (this.network != null && this.network.nodes.size() > 0 && this.network.nodes.get(0) == this) {
-			compound.setTag("network", this.network.serializeNBT());
-		}
 		return super.writeToNBT(compound);
 	}
 	

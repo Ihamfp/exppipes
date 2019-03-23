@@ -128,14 +128,14 @@ public abstract class GuiContainerDecorated extends GuiContainer {
 			int iy = y+yGrid*18;
 			this.itemRender.renderItemIntoGUI(stacks.get(stackDrawn).stack, ix, iy);
 			this.itemRender.renderItemOverlayIntoGUI(fontRenderer, stacks.get(stackDrawn).stack, ix, iy, Integer.toString(stacks.get(stackDrawn).count));
-			if (mouseX > ix && mouseX < ix+18 && mouseY > iy && mouseY < iy+18) {
+			if (mouseX-guiLeft > ix && mouseX-guiLeft < ix+18 && mouseY-guiTop > iy && mouseY-guiTop < iy+18) {
 				toolTipStack = stacks.get(stackDrawn).stack;
 			}
 		}
 		RenderHelper.enableStandardItemLighting();
 		
 		if (toolTipStack != null) {
-			this.renderToolTip(toolTipStack, mouseX, mouseY);
+			this.renderToolTip(toolTipStack, mouseX-guiLeft, mouseY-guiTop);
 		}
 	}
 }

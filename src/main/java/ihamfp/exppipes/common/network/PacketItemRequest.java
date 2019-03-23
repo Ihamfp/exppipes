@@ -1,5 +1,7 @@
 package ihamfp.exppipes.common.network;
 
+import ihamfp.exppipes.pipenetwork.PipeNetwork.Request;
+import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
@@ -16,12 +18,14 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 public class PacketItemRequest implements IMessage {
 	BlockPos pos;
 	FilterConfig filter;
+	int count;
 	
 	public PacketItemRequest() {}
 	
-	public PacketItemRequest(BlockPos pos, FilterConfig filter) {
+	public PacketItemRequest(BlockPos pos, FilterConfig filter, int count) {
 		this.pos = pos;
 		this.filter = filter;
+		this.count = count;
 	}
 
 	@Override
@@ -29,6 +33,7 @@ public class PacketItemRequest implements IMessage {
 		this.pos = new BlockPos(buf.readInt(), buf.readInt(), buf.readInt());
 		ItemStack stack = ByteBufUtils.readItemStack(buf);
 		this.filter = new FilterConfig(stack, FilterType.values()[buf.readByte()]);
+		this.count = buf.readInt();
 	}
 
 	@Override
@@ -38,6 +43,7 @@ public class PacketItemRequest implements IMessage {
 		buf.writeInt(this.pos.getZ());
 		ByteBufUtils.writeItemStack(buf, this.filter.stack);
 		buf.writeByte(filter.filterType.ordinal());
+		buf.writeInt(this.count);
 	}
 	
 	public static class Handler implements IMessageHandler<PacketItemRequest,IMessage> {
@@ -53,7 +59,10 @@ public class PacketItemRequest implements IMessage {
 				TileEntityRoutingPipe terp = (TileEntityRoutingPipe)te; // just a cast, really
 				if (terp.network == null) return;
 				
-				terp.network.request(terp, message.filter);
+				Request req = terp.network.request(terp, message.filter, message.count);
+				if (terp instanceof TileEntityRequestPipe) {
+					((TileEntityRequestPipe)terp).requests.add(req);
+				}
 			});
 			return null;
 		}

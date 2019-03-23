@@ -81,7 +81,7 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 		super.actionPerformed(button);
 		if (button.id == 0 && selected >= 0) { // request
 			InvCacheEntry entry = te.invCache.get(selected + page*itemsPerPage);
-			PacketHandler.INSTANCE.sendToServer(new PacketItemRequest(te.getPos(), new FilterConfig(entry.stack, FilterType.STRICT)));
+			PacketHandler.INSTANCE.sendToServer(new PacketItemRequest(te.getPos(), new FilterConfig(entry.stack, FilterType.STRICT), 1));
 			
 			entry.count--;
 			if (entry.count == 0) {
@@ -113,16 +113,23 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 
 	@Override
 	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
+		if (this.selected+this.page*itemsPerPage > this.te.invCache.size()) {
+			this.selected = -1;
+		}
 		mc.getTextureManager().bindTexture(background);
 		drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize);
 		this.fontRenderer.drawString("Request pipe", guiLeft+8, guiTop+6, 0x7f7f7f);
 		this.fontRenderer.drawString(Integer.toString(this.page+1) + "/" + Integer.toString(1+this.te.invCache.size()/itemsPerPage), guiLeft+143, guiTop+7, 0x7f7f7f);
-		
-		if (te.invCache == null) return;
-		
-		this.drawItemSelector(guiLeft+8, guiTop+18, 9, 6, this.te.invCache, this.selected, this.page, mouseX, mouseY);
-		if (this.buttonList.get(4).isMouseOver()) { // sorting by id/count
-			this.drawHoveringText("Sorting by " + (sortID?"ID":"count"), mouseX, mouseY);
+	}
+
+	@Override
+	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
+		if (te.invCache != null) {
+			this.drawItemSelector(8, 18, 9, 6, this.te.invCache, this.selected, this.page, mouseX, mouseY);
 		}
+		if (this.buttonList.get(4).isMouseOver()) { // sorting by id/count
+			this.drawHoveringText("Sorting by " + (sortID?"ID":"count"), mouseX-this.guiLeft, mouseY-this.guiTop);
+		}
+		super.drawGuiContainerForegroundLayer(mouseX, mouseY);
 	}
 }

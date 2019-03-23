@@ -3,79 +3,87 @@ package ihamfp.exppipes.pipenetwork;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import javax.annotation.Nullable;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.tileentities.TileEntityProviderPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
-import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.common.util.Constants;
-import net.minecraftforge.common.util.INBTSerializable;
 
-public class PipeNetwork implements INBTSerializable<NBTTagCompound> {
+public class PipeNetwork {
 	public List<TileEntityRoutingPipe> nodes = new ArrayList<TileEntityRoutingPipe>();
 	public List<TileEntityProviderPipe> providers = new ArrayList<TileEntityProviderPipe>();
 	
-	/* TODO massive requests redesign:
-	 *  - each pipe will manage its own requests
-	 *  - every pending requests will still be available via the network
-	 *  - requests will be directly sent to the highest priority providing/routing pipe
-	 */
 	public class Request {
 		/**
-		 * The {@link TileEntityRoutingPipe} that requested the itemstack.
+		 * Used in crafting trees, can (and will, most likely) be null
+		 */
+		public Request parent = null;
+		/**
+		 * The {@link TileEntittyRoutingPipe} that requested the itemstack.
 		 * If null, set the {@link ItemDirection.destination} to null so that the item is sent to the default route
 		 */
-		@Nullable
 		public TileEntityRoutingPipe requester;
-		
 		/**
-		 * The requested filtered ItemStack
+		 * The requested ItemStack filter
 		 */
 		public FilterConfig filter;
-		
 		/**
-		 * Set to true when a provider acknowledged the request and will send items.
-		 * Can be set back to false if the provider doesn't have all the items. In this case, the filter stack will be adjusted.
-		 * Should be true when `completed` is true.
+		 * Constant, the total requested item count
 		 */
-		public AtomicBoolean handled = new AtomicBoolean();
-		
+		public int requestedCount;
 		/**
-		 * Set to true when the request can be completely removed from the network
+		 * The currently processing item count
+		 * Increased when a crafting pipe starts crafting or when a provider inserts items on the network.
+		 * Decreased when requested items are received by the requester.
 		 */
-		public boolean completed = false;
+		public AtomicInteger processingCount = new AtomicInteger(0);
+		/**
+		 * The processed count, increased by the requester on items reception.
+		 */
+		public int processedCount = 0;
 		
-		public Request(TileEntityRoutingPipe requester, FilterConfig filter) {
-			if (filter.stack.getCount() > filter.stack.getMaxStackSize()) {
-				ExppipesMod.logger.error("Over-the-top stack in request by " + requester.toString());
-				filter.stack.setCount(filter.stack.getMaxStackSize());
-			}
+		public Request(TileEntityRoutingPipe requester, FilterConfig filter, int requestedCount) {
 			this.requester = requester;
 			this.filter = filter;
-			this.handled.set(false);
+			this.requestedCount = requestedCount;
+		}
+		
+		public Request(TileEntityRoutingPipe requester, FilterConfig filter, int requestedCount, Request parent) {
+			this(requester, filter, requestedCount);
+			this.parent = parent;
 		}
 	}
-	public CopyOnWriteArrayList<Request> requests = new CopyOnWriteArrayList<Request>(); // needs to be concurrent, for removing requests asynchronously
+	
+	public CopyOnWriteArrayList<Request> requests = new CopyOnWriteArrayList<Request>();
 	
 	public TileEntityRoutingPipe getDefaultRoute(ItemStack stack) {
 		int priority = Integer.MIN_VALUE; // get the highest priority, start with the lowest
 		List<TileEntityRoutingPipe> candidates = new ArrayList<TileEntityRoutingPipe>();
+		
+		// Check for requests first
+		for (Request req : this.requests) {
+			if (req.filter.doesMatch(stack)) { // we got one !
+				if (req.filter.priority > priority) {
+					candidates.clear();
+					candidates.add(req.requester);
+					priority = req.filter.priority;
+				} else if (req.filter.priority == priority) {
+					candidates.add(req.requester);
+				}
+			}
+		}
+		if (candidates.size() > 0) {
+			Collections.shuffle(candidates);
+			return candidates.get(0);
+		}
+		
+		priority = Integer.MIN_VALUE; // start again !
 		for (TileEntityRoutingPipe pipe : this.nodes) {
 			for (FilterConfig filter : pipe.sinkConfig.filters) {
 				if (filter.priority > priority && filter.doesMatch(stack) && pipe.canInsert(stack)) {
@@ -110,6 +118,7 @@ public class PipeNetwork implements INBTSerializable<NBTTagCompound> {
 	// TODO: shortest path, the current algorithm only checks for lowest amount of nodes
 	public EnumFacing getShortestFace(TileEntityRoutingPipe source, TileEntityRoutingPipe dest) {
 		if (dest == null || source == null) return null;
+		if (source == dest) return null;
 		if (source.network != dest.network) return null;
 		
 		// How it works:
@@ -145,13 +154,13 @@ public class PipeNetwork implements INBTSerializable<NBTTagCompound> {
 			}
 		}
 		
-		ExppipesMod.logger.error("Found source but no path");
+		ExppipesMod.logger.error("Found source but no path from " + source.getPos().toString() + "to " + dest.getPos().toString());
 		
 		return null;
 	}
 	
 	public void removeNode(TileEntityRoutingPipe node) {
-		ExppipesMod.logger.info("Removing " + node.getPos().toString() + " from network");
+		ExppipesMod.logger.trace("Removing " + node.getPos().toString() + " from network");
 		nodes.remove(node);
 		providers.remove(node);
 		for (TileEntityRoutingPipe pipe : node.connectedNodes.values()) { // for all the nodes connected to he one to remove...
@@ -168,9 +177,7 @@ public class PipeNetwork implements INBTSerializable<NBTTagCompound> {
 		
 		List<Request> toRemove = new ArrayList<Request>();
 		for (Request r : this.requests) { // remove all not-handled requests made by the node
-			if(!r.handled.getAndSet(true)) { // quickly mark is as handled to prevent other node from handling it
-				toRemove.add(r);
-			}
+			toRemove.add(r);
 		}
 		this.requests.removeAll(toRemove);
 	}
@@ -237,8 +244,8 @@ public class PipeNetwork implements INBTSerializable<NBTTagCompound> {
 		return condInv;
 	}
 	
-	public Request request(TileEntityRoutingPipe requester, FilterConfig filter) {
-		Request req = new Request(requester, filter);
+	public Request request(TileEntityRoutingPipe requester, FilterConfig filter, int count) {
+		Request req = new Request(requester, filter, count);
 		
 		if (this.requests.size() == 0) { // no request, just add one
 			this.requests.add(req);
@@ -259,73 +266,5 @@ public class PipeNetwork implements INBTSerializable<NBTTagCompound> {
 	
 	public void endRequest(Request req) {
 		this.requests.remove(req);
-	}
-	
-	// NBT Serialization used to save the requests
-	
-	@Override
-	public NBTTagCompound serializeNBT() {
-		NBTTagCompound networkNBT = new NBTTagCompound();
-		
-		NBTTagList reqList = new NBTTagList();
-		for (Request req : this.requests) {
-			NBTTagCompound entry = new NBTTagCompound();
-			
-			NBTTagCompound filter = new NBTTagCompound();
-			req.filter.stack.writeToNBT(filter);
-			filter.setByte("filterType", (byte)req.filter.filterType.ordinal());
-			filter.setInteger("priority", req.filter.priority);
-			entry.setTag("filter", filter);
-			
-			entry.setBoolean("handled", req.handled.get());
-			entry.setBoolean("completed", req.completed);
-			
-			BlockPos requester = req.requester.getPos();
-			int[] posXYZ = {requester.getX(), requester.getY(), requester.getZ()};
-			entry.setIntArray("requester", posXYZ);
-			
-			reqList.appendTag(entry);
-		}
-		networkNBT.setTag("requests", reqList);
-		
-		return networkNBT;
-	}
-
-	@Override
-	public void deserializeNBT(NBTTagCompound nbt) {
-		// don't do anything, we need a world here
-	}
-	
-	public void deserializeNBT(NBTTagCompound nbt, World world) {
-		NBTTagList reqList = nbt.getTagList("requests", Constants.NBT.TAG_COMPOUND);
-		
-		Iterator<NBTBase> reqIt = reqList.iterator();
-		
-		this.requests.clear();
-		while (reqIt.hasNext()) {
-			NBTTagCompound entry = (NBTTagCompound)reqIt.next();
-			NBTTagCompound filter = (NBTTagCompound)entry.getTag("filter");
-
-			ItemStack filterStack = new ItemStack(filter);
-			FilterType filterType = FilterType.values()[filter.getByte("filterType")];
-			int filterPriority = filter.getInteger("priority");
-			
-			FilterConfig reqFilter = new FilterConfig(filterStack, filterType, filterPriority);
-			
-			boolean handled = entry.getBoolean("handled");
-			boolean completed = entry.getBoolean("completed");
-			
-			int[] requester = entry.getIntArray("requester");
-			TileEntity reqTE = world.getTileEntity(new BlockPos(requester[0], requester[1], requester[2]));
-			if (reqTE.isInvalid() || !(reqTE instanceof TileEntityRoutingPipe)) {
-				continue;
-			}
-			
-			Request request = new Request((TileEntityRoutingPipe)reqTE, reqFilter);
-			request.handled.set(handled);
-			request.completed = completed;
-			
-			this.requests.add(request);
-		}
 	}
 }

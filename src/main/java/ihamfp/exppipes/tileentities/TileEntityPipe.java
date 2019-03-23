@@ -82,29 +82,26 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	}
 	
 	// output stack may not match the input stack
-	ItemStack extractFrom(IItemHandler itemHandler, ItemStack stack) {
-		return this.extractFrom(itemHandler, new FilterConfig(stack, FilterType.STRICT));
+	ItemStack extractFrom(IItemHandler itemHandler, ItemStack stack, int count) {
+		return this.extractFrom(itemHandler, new FilterConfig(stack, FilterType.STRICT), count);
 	}
 	
-	ItemStack extractFrom(IItemHandler itemHandler, FilterConfig filter) {
+	ItemStack extractFrom(IItemHandler itemHandler, FilterConfig filter, int count) {
 		ItemStack outStack = null;
 		for (int i=0; i<itemHandler.getSlots();i++) {
 			if (filter.doesMatch(itemHandler.getStackInSlot(i))) {
-				int needed = filter.stack.getCount();
-				if (outStack != null) needed -= outStack.getCount();
-				if (needed <= 0) break; // safety measure
-				
 				if (outStack == null) {
-					outStack = itemHandler.extractItem(i, needed, false);
+					outStack = itemHandler.extractItem(i, count, false);
+					count = Integer.min(count, outStack.getMaxStackSize());
 				} else {
-					ItemStack stackInSlot = itemHandler.extractItem(i, needed, true);
+					ItemStack stackInSlot = itemHandler.extractItem(i, count-outStack.getCount(), true);
 					if (ItemStack.areItemStackTagsEqual(outStack, stackInSlot)) {
-						itemHandler.extractItem(i, needed, false);
+						itemHandler.extractItem(i, count-outStack.getCount(), false);
 						outStack.grow(stackInSlot.getCount());
 					}
 				}
 			}
-			if (outStack != null && filter.doesMatch(outStack) && outStack.getCount() == filter.stack.getCount()) {
+			if (outStack != null && filter.doesMatch(outStack) && outStack.getCount() == count) {
 				break; // don't need to add more
 			}
 		}
@@ -126,7 +123,7 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 			
 			if (i.itemStack.isEmpty() || i.itemStack.getItem() == Items.AIR) { // It's air, who gives a fuck
 				toRemove.add(i);
-			} else if ((this.world.getTotalWorldTime() - i.insertTime) > PipeItemHandler.travelTime && i.to != null) { // send it to destination
+			} else if ((this.world.getTotalWorldTime() - i.insertTime) >= PipeItemHandler.travelTime && i.to != null) { // send it to destination
 				BlockPos target = this.pos.offset(i.to);
 				if (this.world.getTileEntity(target) == null || !this.world.getTileEntity(target).hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, i.to.getOpposite())) {
 					i.to = null;
@@ -147,6 +144,7 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 					} else {
 						i.from = i.to;
 						i.to = null;
+						i.destination = null;
 						i.insertTime = this.world.getTotalWorldTime();
 					}
 				}
@@ -171,6 +169,10 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 						i.to = e;
 						break;
 					}
+				}
+				if (i.to == null) { // still nothing ? Send it back
+					i.to = i.from;
+					i.from = i.to.getOpposite();
 				}
 			}
 		}
