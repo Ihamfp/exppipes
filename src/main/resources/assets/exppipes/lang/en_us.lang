@@ -5,3 +5,4 @@ tile.exppipes:blockroutingpipe.name=Routing pipe
 tile.exppipes:blockproviderpipe.name=Provider pipe
 tile.exppipes:blocksupplierpipe.name=Supplier pipe
 tile.exppipes:blockrequestpipe.name=Request pipe
+tile.exppipes:blocknoinsertionpipe.name=No insertion pipe

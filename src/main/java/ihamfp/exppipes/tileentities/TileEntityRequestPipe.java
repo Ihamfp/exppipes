@@ -84,6 +84,7 @@ public class TileEntityRequestPipe extends TileEntityRoutingPipe {
 	@Optional.Method(modid = "opencomputers")
     @Callback(doc = "function(string:item, [integer:quantity=1, [string:filterType=\"DEFAULT\", [integer:meta=0, [string:nbtString=\"\"]]]]); Request something on the network")
     public Object[] request(Context context, Arguments args) throws Exception {
+		if (this.network == null) return null;
 		String item = args.checkString(0);
 		ItemStack stack = GameRegistry.makeItemStack(item, args.optInteger(3, 0), 1, args.optString(4, ""));
 		FilterConfig filter = new FilterConfig(stack, FilterType.fromString(args.optString(2, "DEFAULT")));
@@ -95,6 +96,7 @@ public class TileEntityRequestPipe extends TileEntityRoutingPipe {
     @Callback
     public Object[] getItemsStored(Context context, Arguments args) throws Exception {
     	List<Object> returns = new ArrayList<Object>();
+		if (this.network == null) return returns.toArray();
 		for (ItemStack stack : this.network.globalInventory()) {
 			Map<String,Object> entry = new HashMap<String,Object>();
 			entry.put("item", stack.getItem().getRegistryName());
@@ -114,6 +116,7 @@ public class TileEntityRequestPipe extends TileEntityRoutingPipe {
     @Callback
     public Object[] getItemsRequestable(Context context, Arguments args) throws Exception {
 		List<Object> returns = new ArrayList<Object>();
+		if (this.network == null) return returns.toArray();
 		Map<ItemStack,Integer> condInv = this.network.condensedInventory();
 		for (ItemStack stack : condInv.keySet()) {
 			Map<String,Object> entry = new HashMap<String,Object>();

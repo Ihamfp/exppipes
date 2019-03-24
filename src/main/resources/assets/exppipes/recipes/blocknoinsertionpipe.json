@@ -1,0 +1,16 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"ingredients":[
+		{
+			"item": "exppipes:blockpipe"
+		},
+		{
+			"type": "forge:ore_dict",
+			"ore": "plankWood"
+		}
+	],
+	"result": {
+		"item": "exppipes:blocknoinsertionpipe",
+		"count": 1
+	}
+}

@@ -21,6 +21,7 @@ public class ModBlocks {
 	public static BlockProviderPipe providerPipe = new BlockProviderPipe("blockProviderPipe");
 	public static BlockSupplierPipe supplierPipe = new BlockSupplierPipe("blockSupplierPipe");
 	public static BlockRequestPipe requestPipe = new BlockRequestPipe("blockRequestPipe");
+	public static BlockNoInsertionPipe noInsertionPipe = new BlockNoInsertionPipe("blockNoInsertionPipe");
 	
 	public static ArrayList<Block> modBlocks = new ArrayList<Block>();
 	public static ArrayList<Item> modItemBlocks = new ArrayList<Item>();
@@ -31,6 +32,7 @@ public class ModBlocks {
 		modBlocks.add(providerPipe);
 		modBlocks.add(supplierPipe);
 		modBlocks.add(requestPipe);
+		modBlocks.add(noInsertionPipe);
 		
 		MinecraftForge.EVENT_BUS.register(new ModBlocks());
 	}
