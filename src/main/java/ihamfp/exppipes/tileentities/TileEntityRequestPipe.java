@@ -5,10 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ihamfp.exppipes.common.Configs;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.Request;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
-import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
+import ihamfp.exppipes.tileentities.pipeconfig.Filters;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
@@ -34,7 +35,7 @@ public class TileEntityRequestPipe extends TileEntityRoutingPipe {
 		List<Request> rRemove = new ArrayList<Request>();
 		for (Request r : this.requests) {
 			for (ItemDirection itemDir : itemHandler.storedItems) {
-				if (itemDir.destination == this && (this.world.getTotalWorldTime()-itemDir.insertTime)>=PipeItemHandler.travelTime && r.filter.doesMatch(itemDir.itemStack)) {
+				if (itemDir.destination == this && (this.world.getTotalWorldTime()-itemDir.insertTime)>=Configs.travelTime && r.filter.doesMatch(itemDir.itemStack)) {
 					r.processingCount.addAndGet(-itemDir.itemStack.getCount());
 					if (r.processingCount.get() < 0) r.processingCount.set(0);
 					r.processedCount += itemDir.itemStack.getCount();
@@ -82,12 +83,12 @@ public class TileEntityRequestPipe extends TileEntityRoutingPipe {
 	}
 	
 	@Optional.Method(modid = "opencomputers")
-    @Callback(doc = "function(string:item, [integer:quantity=1, [string:filterType=\"DEFAULT\", [integer:meta=0, [string:nbtString=\"\"]]]]); Request something on the network")
+    @Callback(doc = "function(string:item, [integer:quantity=1, [string:filterType=\"D\", [integer:meta=0, [string:nbtString=\"\"]]]]); Request something on the network")
     public Object[] request(Context context, Arguments args) throws Exception {
 		if (this.network == null) return null;
 		String item = args.checkString(0);
 		ItemStack stack = GameRegistry.makeItemStack(item, args.optInteger(3, 0), 1, args.optString(4, ""));
-		FilterConfig filter = new FilterConfig(stack, FilterType.fromString(args.optString(2, "DEFAULT")));
+		FilterConfig filter = new FilterConfig(stack, Filters.idFromShortString(args.optString(2, "D")), false);
 		this.requests.add(this.network.request(this, filter, args.optInteger(1, 1)));
 		return null;
 	}

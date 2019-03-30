@@ -10,7 +10,7 @@ import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.PipeNetwork;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
-import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
+import ihamfp.exppipes.tileentities.pipeconfig.Filters;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
@@ -41,6 +41,8 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 	
 	// Used to store a list of nodes, providers, etc. and provide some network-wide functions
 	public PipeNetwork network = null;
+
+	public boolean isDefaultRoute = false;
 	
 	// Purely cosmetic, used to set the block state
 	@SideOnly(Side.CLIENT)
@@ -166,6 +168,14 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		}
 		this.nextUpdate--;
 		
+		if (this.isDefaultRoute && this.network != null && this.network.defaultRoute != this) {
+			if (this.network.defaultRoute == null) {
+				this.network.defaultRoute = this;
+			} else {
+				this.isDefaultRoute = false;
+			}
+		}
+		
 		this.itemHandler.tick(this.world.getTotalWorldTime());
 		
 		for (ItemDirection i : this.itemHandler.storedItems) {
@@ -218,12 +228,14 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
 		this.sinkConfig.deserializeNBT(compound.getCompoundTag("config"));
+		this.isDefaultRoute = compound.getBoolean("isdefaultroute");
 		super.readFromNBT(compound);
 	}
 
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setTag("config", this.sinkConfig.serializeNBT());
+		compound.setBoolean("isdefaultroute", this.isDefaultRoute);
 		return super.writeToNBT(compound);
 	}
 	
@@ -234,6 +246,7 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		if (!this.world.isRemote) { // sending from the server
 			nbtTag.setBoolean("hasNetwork", this.network != null);
 			nbtTag.setTag("config", this.sinkConfig.serializeNBT());
+			nbtTag.setBoolean("isdefaultroute", this.isDefaultRoute);
 		}
 		return nbtTag;
 	}
@@ -248,6 +261,7 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 			} else {
 				this.network = null;
 			}
+			this.isDefaultRoute = nbtTag.getBoolean("isdefaultroute");
 		}
 		super.onDataPacket(net, pkt);
 	}
@@ -272,8 +286,8 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		List<Object> returns = new ArrayList<Object>();
 		for (FilterConfig filter : this.sinkConfig.computerFilters) {
 			Map<String,Object> entry = new HashMap<String,Object>();
-			entry.put("item", filter.stack.getItem().getRegistryName());
-			entry.put("filterType", filter.filterType.toString());
+			entry.put("item", filter.reference.getItem().getRegistryName());
+			entry.put("filterType", Filters.filters.get(filter.filterId).getShortName());
 			entry.put("priority", filter.priority);
 			returns.add(entry);
 			//returns.add(new Object[] {filter.stack.getItem().getRegistryName(), filter.stack.getMetadata(), filter.filterType.toString(), filter.priority});
@@ -282,11 +296,11 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 	}
     
     @Optional.Method(modid = "opencomputers")
-    @Callback(doc = "function(string:item, [integer:quantity=1, [string:filterType=\"DEFAULT\", [integer:meta=0, [string:nbtString=\"\"]]]]):integer; Add a sink filter, returns filter ID.")
+    @Callback(doc = "function(string:item, [string:filterType=\"D\", [boolean:blacklist=false, [integer:meta=0, [string:nbtString=\"\"]]]]):integer; Add a sink filter, returns filter ID.")
     public Object[] addSinkFilter(Context context, Arguments args) throws Exception {
     	String item = args.checkString(0);
-		ItemStack stack = GameRegistry.makeItemStack(item, args.optInteger(3, 0), args.optInteger(1, 1), args.optString(4, ""));
-		FilterConfig filter = new FilterConfig(stack, FilterType.fromString(args.optString(2, "DEFAULT")));
+		ItemStack stack = GameRegistry.makeItemStack(item, args.optInteger(3, 0), 1, args.optString(4, ""));
+		FilterConfig filter = new FilterConfig(stack, Filters.idFromShortString(args.optString(1, "D")), args.optBoolean(2, false));
 		this.sinkConfig.computerFilters.add(filter);
     	return new Object[] {this.sinkConfig.computerFilters.size()};
     }

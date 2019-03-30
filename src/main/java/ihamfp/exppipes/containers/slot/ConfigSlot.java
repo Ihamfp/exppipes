@@ -2,7 +2,6 @@ package ihamfp.exppipes.containers.slot;
 
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
-import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
@@ -46,7 +45,7 @@ public class ConfigSlot extends Slot {
 	@Override
 	public ItemStack getStack() {
 		if (config.filters.size() > this.slotNumber) {
-			return config.filters.get(slotNumber).stack;
+			return config.filters.get(slotNumber).reference;
 		} else {
 			return ItemStack.EMPTY;
 		}
@@ -54,15 +53,15 @@ public class ConfigSlot extends Slot {
 
 	@Override
 	public boolean getHasStack() {
-		return (config.filters.size() < this.slotNumber);
+		return (config.filters.size() > this.slotNumber);
 	}
 
 	@Override
 	public void putStack(ItemStack stack) {
 		if (config.filters.size() <= this.slotNumber) {
-			config.filters.add(new FilterConfig(stack, FilterType.DEFAULT));
+			config.filters.add(new FilterConfig(stack, 0, false));
 		} else {
-			config.filters.get(slotNumber).stack = stack;
+			config.filters.get(slotNumber).reference = stack;
 		}
 	}
 
@@ -84,7 +83,7 @@ public class ConfigSlot extends Slot {
 	@Override
 	public ItemStack decrStackSize(int amount) {
 		if (amount > 0 && config.filters.size() > this.slotNumber) {
-			ItemStack toReturn = config.filters.get(slotNumber).stack.copy();
+			ItemStack toReturn = config.filters.get(slotNumber).reference.copy();
 			config.filters.remove(this.slotNumber);
 			return toReturn;
 		}

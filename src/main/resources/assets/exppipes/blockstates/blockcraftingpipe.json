@@ -1,0 +1,29 @@
+{
+    "multipart": [
+        {   "apply": { "model": "exppipes:blockcraftingpipe_center" }},
+        {   "when": { "connnorth": "true" },
+            "apply": { "model": "exppipes:blockpipe_side", "uvlock": false }
+        },
+        {   "when": { "conneast": "true" },
+            "apply": { "model": "exppipes:blockpipe_side", "y": 90, "uvlock": false }
+        },
+        {   "when": { "connsouth": "true" },
+            "apply": { "model": "exppipes:blockpipe_side", "y": 180, "uvlock": false }
+        },
+        {   "when": { "connwest": "true" },
+            "apply": { "model": "exppipes:blockpipe_side", "y": 270, "uvlock": false }
+        },
+        {
+            "when": { "connup": "true" },
+            "apply": { "model": "exppipes:blockpipe_side", "x": 270, "uvlock": false }
+        },
+        {
+            "when": { "conndown": "true" },
+            "apply": { "model": "exppipes:blockpipe_side", "x": 90, "uvlock": false }
+        },
+        {
+        	"when": { "hasnetwork": "false" },
+        	"apply": { "model": "exppipes:blockpipe_nonetwork", "uvlock": false }
+        }
+    ]
+}

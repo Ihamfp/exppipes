@@ -7,7 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import com.google.common.collect.Iterables;
+
 import ihamfp.exppipes.ExppipesMod;
+import ihamfp.exppipes.items.ItemCraftingPattern;
+import ihamfp.exppipes.tileentities.TileEntityCraftingPipe;
 import ihamfp.exppipes.tileentities.TileEntityProviderPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
@@ -16,10 +20,17 @@ import net.minecraft.util.EnumFacing;
 
 public class PipeNetwork {
 	public List<TileEntityRoutingPipe> nodes = new ArrayList<TileEntityRoutingPipe>();
+	public TileEntityRoutingPipe defaultRoute = null;
 	public List<TileEntityProviderPipe> providers = new ArrayList<TileEntityProviderPipe>();
+	public List<TileEntityCraftingPipe> crafters = new ArrayList<TileEntityCraftingPipe>();
 	
 	public CopyOnWriteArrayList<Request> requests = new CopyOnWriteArrayList<Request>();
 	
+	/***
+	 * Get the pipe to send an item with no route set to.
+	 * @param stack the stack to get the destination for
+	 * @return the destination
+	 */
 	public TileEntityRoutingPipe getDefaultRoute(ItemStack stack) {
 		int priority = Integer.MIN_VALUE; // get the highest priority, start with the lowest
 		List<TileEntityRoutingPipe> candidates = new ArrayList<TileEntityRoutingPipe>();
@@ -41,29 +52,45 @@ public class PipeNetwork {
 			return candidates.get(0);
 		}
 		
+		if (this.defaultRoute != null && !this.defaultRoute.isInvalid()) candidates.add(this.defaultRoute); 
 		priority = Integer.MIN_VALUE; // start again !
+		List<TileEntityRoutingPipe> notBlacklisted = new ArrayList<TileEntityRoutingPipe>(); // un-prioritized pipe where the stack isn't blacklisted
 		for (TileEntityRoutingPipe pipe : this.nodes) {
-			for (FilterConfig filter : pipe.sinkConfig.filters) {
-				if (filter.priority > priority && filter.doesMatch(stack) && pipe.canInsert(stack)) {
-					candidates.clear();
-					candidates.add(pipe);
-					priority = filter.priority;
-				} else if (filter.priority == priority && filter.doesMatch(stack) && pipe.canInsert(stack)) {
-					candidates.add(pipe);
+			boolean valid = false;
+			boolean blacklisted = false;
+			int maxPriority = priority;
+			
+			for (FilterConfig filter : Iterables.concat(pipe.sinkConfig.filters, pipe.sinkConfig.computerFilters)) {
+				boolean didMatch = filter.doesMatch(stack);
+				if (didMatch && !filter.blacklist && pipe.canInsert(stack)) {
+					if (filter.priority > maxPriority) {
+						maxPriority = filter.priority;
+					}
+					valid = true;
+				} else if (!didMatch && filter.blacklist && filter.priority >= maxPriority) {
+					valid = false;
+					blacklisted = true;
+					maxPriority = filter.priority;
 				}
 			}
-			for (FilterConfig filter : pipe.sinkConfig.computerFilters) {
-				if (filter.priority > priority && filter.doesMatch(stack) && pipe.canInsert(stack)) {
+			
+			if (valid) {
+				if (maxPriority > priority) {
+					priority = maxPriority;
 					candidates.clear();
-					candidates.add(pipe);
-					priority = filter.priority;
-				} else if (filter.priority == priority && filter.doesMatch(stack) && pipe.canInsert(stack)) {
-					candidates.add(pipe);
 				}
+				candidates.add(pipe);
+			}
+			if (!blacklisted && pipe.canInsert(stack)) {
+				notBlacklisted.add(pipe);
 			}
 		}
 		
 		if (candidates.size() == 0) {
+			if (notBlacklisted.size() > 0) {
+				Collections.shuffle(notBlacklisted);
+				return notBlacklisted.get(0);
+			}
 			return null;
 		}
 		
@@ -197,6 +224,21 @@ public class PipeNetwork {
 				condInv.put(keyStack, storedStack.getCount());
 			} else {
 				condInv.put(matched, condInv.get(matched) + storedStack.getCount());
+			}
+		}
+		for (TileEntityCraftingPipe pipe : this.crafters) {
+			for (int i=0; i<pipe.patternStorage.getSlots();i++) {
+				ItemStack[] patternResults = ItemCraftingPattern.getPatternResults(pipe.patternStorage.getStackInSlot(i));
+				for (ItemStack patternResult : patternResults) {
+					if (patternResult.isEmpty()) continue;
+					boolean added = false;
+					for (ItemStack keyStack : condInv.keySet()) {
+						if (ItemStack.areItemsEqual(patternResult, keyStack) && ItemStack.areItemStackTagsEqual(patternResult, keyStack)) {
+							added = true;
+						}
+					}
+					if (!added) condInv.put(patternResult, 0);
+				}
 			}
 		}
 		return condInv;

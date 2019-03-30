@@ -10,7 +10,6 @@ import ihamfp.exppipes.common.network.PacketItemRequest;
 import ihamfp.exppipes.tileentities.InvCacheEntry;
 import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
-import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
@@ -81,7 +80,7 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 		super.actionPerformed(button);
 		if (button.id == 0 && selected >= 0) { // request
 			InvCacheEntry entry = te.invCache.get(selected + page*itemsPerPage);
-			PacketHandler.INSTANCE.sendToServer(new PacketItemRequest(te.getPos(), new FilterConfig(entry.stack, FilterType.STRICT), 1));
+			PacketHandler.INSTANCE.sendToServer(new PacketItemRequest(te.getPos(), new FilterConfig(entry.stack, 2, false), 1));
 			
 			entry.count--;
 			if (entry.count == 0) {

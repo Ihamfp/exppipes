@@ -5,9 +5,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import ihamfp.exppipes.common.Configs;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
-import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
@@ -83,7 +83,7 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	
 	// output stack may not match the input stack
 	ItemStack extractFrom(IItemHandler itemHandler, ItemStack stack, int count) {
-		return this.extractFrom(itemHandler, new FilterConfig(stack, FilterType.STRICT), count);
+		return this.extractFrom(itemHandler, new FilterConfig(stack, 0, false), count);
 	}
 	
 	ItemStack extractFrom(IItemHandler itemHandler, FilterConfig filter, int count) {
@@ -118,12 +118,12 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 		
 		for (ItemDirection i : this.itemHandler.storedItems) {
 			if (i.insertTime > this.world.getTotalWorldTime()) {
-				i.insertTime = this.world.getTotalWorldTime()-PipeItemHandler.travelTime;
+				i.insertTime = this.world.getTotalWorldTime()-Configs.travelTime;
 			}
 			
 			if (i.itemStack.isEmpty() || i.itemStack.getItem() == Items.AIR) { // It's air, who gives a fuck
 				toRemove.add(i);
-			} else if ((this.world.getTotalWorldTime() - i.insertTime) >= PipeItemHandler.travelTime && i.to != null) { // send it to destination
+			} else if ((this.world.getTotalWorldTime() - i.insertTime) >= Configs.travelTime && i.to != null) { // send it to destination
 				BlockPos target = this.pos.offset(i.to);
 				if (this.world.getTileEntity(target) == null || !this.world.getTileEntity(target).hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, i.to.getOpposite())) {
 					i.to = null;

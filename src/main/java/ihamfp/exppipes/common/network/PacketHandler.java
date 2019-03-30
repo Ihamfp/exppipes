@@ -14,5 +14,6 @@ public class PacketHandler {
 		INSTANCE.registerMessage(PacketInventoryMap.Handler.class, PacketInventoryMap.class, id++, Side.CLIENT);
 		INSTANCE.registerMessage(PacketItemRequest.Handler.class, PacketItemRequest.class, id++, Side.SERVER);
 		INSTANCE.registerMessage(PacketFilterChange.Handler.class, PacketFilterChange.class, id++, Side.SERVER);
+		INSTANCE.registerMessage(PacketSetDefaultRoute.Handler.class, PacketSetDefaultRoute.class, id++, Side.SERVER);
 	}
 }

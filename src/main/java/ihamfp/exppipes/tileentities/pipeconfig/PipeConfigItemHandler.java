@@ -1,7 +1,5 @@
 package ihamfp.exppipes.tileentities.pipeconfig;
 
-import ihamfp.exppipes.ExppipesMod;
-import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.IItemHandlerModifiable;
@@ -24,7 +22,7 @@ public class PipeConfigItemHandler implements IItemHandler, IItemHandlerModifiab
 	@Override
 	public ItemStack getStackInSlot(int slot) {
 		if (slot < config.filters.size()) {
-			return config.filters.get(slot).stack;
+			return config.filters.get(slot).reference;
 		} else {
 			return ItemStack.EMPTY;
 		}
@@ -32,14 +30,13 @@ public class PipeConfigItemHandler implements IItemHandler, IItemHandlerModifiab
 
 	@Override
 	public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-		ExppipesMod.logger.info("inserting item in " + Integer.toString(slot) + ": " + stack.toString() + (simulate?" (simulating)":""));
 		if (!simulate) {
 			ItemStack filterStack = stack.copy();
 			filterStack.setCount(1);
 			if (slot < this.config.filters.size()) { // replace existing filter
-				this.config.filters.get(slot).stack = stack.copy();
+				this.config.filters.get(slot).reference = stack.copy();
 			} else { // add new filter
-				this.config.filters.add(new FilterConfig(stack.copy(), FilterType.DEFAULT));
+				this.config.filters.add(new FilterConfig(stack.copy(), 0, false));
 			}
 		}
 		return stack;
@@ -47,7 +44,6 @@ public class PipeConfigItemHandler implements IItemHandler, IItemHandlerModifiab
 
 	@Override
 	public ItemStack extractItem(int slot, int amount, boolean simulate) {
-		ExppipesMod.logger.info("extracting item from " + Integer.toString(slot) + ": " + Integer.toString(amount) + (simulate?" (simulating)":""));
 		if (!simulate && slot < this.config.filters.size()) {
 			this.config.filters.remove(slot);
 		}
@@ -61,11 +57,10 @@ public class PipeConfigItemHandler implements IItemHandler, IItemHandlerModifiab
 
 	@Override
 	public void setStackInSlot(int slot, ItemStack stack) {
-		ExppipesMod.logger.info("setting item in " + Integer.toString(slot) + ": " + stack.toString());
 		if (slot < this.config.filters.size()) { // replace existing filter
-			this.config.filters.get(slot).stack = stack.copy();
+			this.config.filters.get(slot).reference = stack.copy();
 		} else { // add new filter
-			this.config.filters.add(new FilterConfig(stack.copy(), FilterType.DEFAULT));
+			this.config.filters.add(new FilterConfig(stack.copy(), 0, false));
 		}
 	}
 }

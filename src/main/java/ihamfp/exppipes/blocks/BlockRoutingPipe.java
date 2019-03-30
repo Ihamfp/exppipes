@@ -80,7 +80,7 @@ public class BlockRoutingPipe extends BlockPipe {
 		if (tileEntity instanceof TileEntityRoutingPipe && ((TileEntityRoutingPipe)tileEntity).sinkConfig != null) {
 			ConfigRoutingPipe cfg = ((TileEntityRoutingPipe)tileEntity).sinkConfig;
 			for (FilterConfig filter : cfg.filters) {
-				drops.add(filter.stack);
+				drops.add(filter.reference);
 			}
 		}
 	}

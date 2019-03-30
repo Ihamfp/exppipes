@@ -1,38 +1,26 @@
 package ihamfp.exppipes.common.network;
 
-import ihamfp.exppipes.pipenetwork.Request;
-import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
-import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-public class PacketItemRequest implements IMessage {
+public class PacketSetDefaultRoute implements IMessage {
 	BlockPos pos;
-	FilterConfig filter;
-	int count;
 	
-	public PacketItemRequest() {}
+	public PacketSetDefaultRoute() {}
 	
-	public PacketItemRequest(BlockPos pos, FilterConfig filter, int count) {
+	public PacketSetDefaultRoute(BlockPos pos) {
 		this.pos = pos;
-		this.filter = filter;
-		this.count = count;
 	}
 
 	@Override
 	public void fromBytes(ByteBuf buf) {
 		this.pos = new BlockPos(buf.readInt(), buf.readInt(), buf.readInt());
-		ItemStack stack = ByteBufUtils.readItemStack(buf);
-		this.filter = new FilterConfig(stack, buf.readInt(), buf.readBoolean());
-		this.count = buf.readInt();
 	}
 
 	@Override
@@ -40,16 +28,12 @@ public class PacketItemRequest implements IMessage {
 		buf.writeInt(this.pos.getX());
 		buf.writeInt(this.pos.getY());
 		buf.writeInt(this.pos.getZ());
-		ByteBufUtils.writeItemStack(buf, this.filter.reference);
-		buf.writeInt(filter.filterId);
-		buf.writeBoolean(filter.blacklist);
-		buf.writeInt(this.count);
 	}
 	
-	public static class Handler implements IMessageHandler<PacketItemRequest,IMessage> {
+	public static class Handler implements IMessageHandler<PacketSetDefaultRoute,IMessage> {
 
 		@Override
-		public IMessage onMessage(PacketItemRequest message, MessageContext ctx) {
+		public IMessage onMessage(PacketSetDefaultRoute message, MessageContext ctx) {
 			EntityPlayerMP serverPlayer = ctx.getServerHandler().player;
 			if (message.pos == null) return null;
 			serverPlayer.getServerWorld().addScheduledTask(() -> {
@@ -59,13 +43,10 @@ public class PacketItemRequest implements IMessage {
 				TileEntityRoutingPipe terp = (TileEntityRoutingPipe)te; // just a cast, really
 				if (terp.network == null) return;
 				
-				Request req = terp.network.request(terp, message.filter, message.count);
-				if (terp instanceof TileEntityRequestPipe) {
-					((TileEntityRequestPipe)terp).requests.add(req);
-				}
+				terp.isDefaultRoute = true;
+				terp.network.defaultRoute = terp;
 			});
 			return null;
 		}
 	}
-
 }

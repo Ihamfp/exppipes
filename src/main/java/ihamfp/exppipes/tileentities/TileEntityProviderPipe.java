@@ -14,10 +14,8 @@ public class TileEntityProviderPipe extends TileEntityRoutingPipe {
 	@Override
 	public void serverUpdate() {
 		if (this.network != null && !this.network.providers.contains(this) && this.network.nodes.contains(this)) {
-			//ExppipesMod.logger.info("Attached provider @ " + this.pos.toString() + " to network " + this.network.toString());
 			this.network.providers.add(this);
 		}
-		// New version
 		if (this.network != null && this.network.requests.size() > 0) {
 			Map<ItemStack,TileEntity> inventories = this.getInventories();
 			for (Request req : this.network.requests) {

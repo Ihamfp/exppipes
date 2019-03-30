@@ -16,8 +16,6 @@ import net.minecraftforge.common.util.INBTSerializable;
 import net.minecraftforge.items.IItemHandler;
 
 public class PipeItemHandler implements IItemHandler, INBTSerializable<NBTTagCompound> {
-	public static final int travelTime = 4; // 5 blocks/second
-	
 	public List<ItemDirection> storedItems = new ArrayList<ItemDirection>();
 	public List<ItemDirection> insertedItems = new ArrayList<ItemDirection>(); // items inserted last tick
 	

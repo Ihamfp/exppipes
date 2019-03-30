@@ -1,13 +1,19 @@
 package ihamfp.exppipes.containers;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import ihamfp.exppipes.ExppipesMod;
+import ihamfp.exppipes.common.Configs;
 import ihamfp.exppipes.common.network.PacketFilterChange;
 import ihamfp.exppipes.common.network.PacketFilterChange.FilterFunction;
 import ihamfp.exppipes.common.network.PacketHandler;
+import ihamfp.exppipes.common.network.PacketSetDefaultRoute;
+import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
+import ihamfp.exppipes.tileentities.TileEntitySupplierPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
-import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
+import ihamfp.exppipes.tileentities.pipeconfig.Filters;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.inventory.Container;
 import net.minecraft.util.ResourceLocation;
@@ -18,23 +24,20 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 	
 	public static final ResourceLocation background = new ResourceLocation(ExppipesMod.MODID, "textures/gui/pipeconfig.png");
 	
+	public TileEntityRoutingPipe te = null;
 	public ConfigRoutingPipe conf = null;
+	public FilterFunction filterFunction = FilterFunction.FILTER_SINK;
 	public String confTitle = "Pipe configuration";
 	
-	public GuiContainerPipeConfig(Container inventorySlotsIn) {
+	public GuiContainerPipeConfig(Container inventorySlotsIn, TileEntityRoutingPipe te, FilterFunction filterFunction) {
 		super(inventorySlotsIn);
-		if (inventorySlotsIn instanceof ContainerPipeConfig) {
-			 this.conf = ((ContainerPipeConfig)inventorySlotsIn).te.sinkConfig;
-			 this.confTitle = "Sink configuration";
-		} else {
-			ExppipesMod.logger.error("No associated config found - displaying empty gui");
+		this.te = te;
+		this.conf = te.sinkConfig;
+		if (te instanceof TileEntitySupplierPipe && filterFunction == FilterFunction.FILTER_SUPPLY) {
+			this.conf = ((TileEntitySupplierPipe)te).supplyConfig;
 		}
-	}
-	
-	public GuiContainerPipeConfig(Container inventorySlotsIn, ConfigRoutingPipe conf, String confTitle) {
-		super(inventorySlotsIn);
-		this.conf = conf;
-		this.confTitle = confTitle;
+		this.filterFunction = filterFunction;
+		this.confTitle = (filterFunction == FilterFunction.FILTER_SUPPLY)?"Supply config":"Sink config";
 		if (conf == null) {
 			ExppipesMod.logger.error("No associated config found - displaying empty gui");
 		}
@@ -46,8 +49,11 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 		
 		if (conf == null) return;
 		for (int i=0;i<9;i++) { // config buttons
-			this.addButton(new GuiButton(i*2, guiLeft+8+(i*18), guiTop+34, 18, 18, "0"));
-			this.addButton(new GuiButton(i*2+1, guiLeft+8+(i*18), guiTop+52, 18, 18, "D"));
+			this.addButton(new GuiButton(i*2, guiLeft+7+(i*18), guiTop+35, 18, 18, "0"));
+			this.addButton(new GuiButton(i*2+1, guiLeft+7+(i*18), guiTop+53, 18, 18, "D"));
+		}
+		if (this.filterFunction == FilterFunction.FILTER_SINK) {
+			this.addButton(new GuiButton(18, guiLeft+105, guiTop+4, 64, 11, "Default sink"));
 		}
 		this.updateButtonText(conf);
 	}
@@ -57,9 +63,11 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 		for (int i=0;i<9;i++) { // config buttons
 			int priority = 0;
 			String filter = "D";
+			boolean blacklist = false;
 			if (conf.filters.size() > i) {
 				priority = conf.filters.get(i).priority;
-				filter = conf.filters.get(i).filterType.getShortName();
+				filter = Filters.filters.get(conf.filters.get(i).filterId).getShortName();
+				blacklist = conf.filters.get(i).blacklist;
 				this.buttonList.get(i*2).visible = true;
 				this.buttonList.get(i*2+1).visible = true;
 			} else {
@@ -67,7 +75,16 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 				this.buttonList.get(i*2+1).visible = false;
 			}
 			this.buttonList.get(i*2).displayString = Integer.toString(priority);
+			this.buttonList.get(i*2+1).packedFGColour = blacklist?0xff0000:0;
 			this.buttonList.get(i*2+1).displayString = filter;
+		}
+		
+		if (this.filterFunction == FilterFunction.FILTER_SINK) {
+			if (this.te.isDefaultRoute) {
+				this.buttonList.get(18).enabled = false;
+			} else {
+				this.buttonList.get(18).enabled = true;
+			}
 		}
 	}
 
@@ -78,23 +95,32 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 		this.fontRenderer.drawString(this.confTitle, guiLeft+8, guiTop+6, 0x7f7f7f);
 		this.updateButtonText(conf); // Should maybe replace it with a less resource-intensive way... But I didn't find one
 	}
-
+	
+	@SuppressWarnings("serial")
+	static List<String> filterHoverText = new ArrayList<String>() {{
+		add("Filter: ");
+		if (Configs.showHelpTooltips) add("(Shift+click to toggle blacklist)");
+	}};
+	
 	@Override
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
 		super.drawGuiContainerForegroundLayer(mouseX, mouseY);
 		
 		for (GuiButton button : this.buttonList) {
-			if (button.isMouseOver() && button.enabled && button.visible) {
+			if (button.isMouseOver() && button.enabled && button.visible && conf != null && button.id/2 < conf.filters.size()) {
 				if (button.id%2 == 0) { // priority
 					this.drawHoveringText("Priority", mouseX-guiLeft, mouseY-guiTop);
 				} else {
-					FilterType filterType = FilterType.DEFAULT;
+					int filterId = 0;
+					boolean blacklist = false;
 					if (this.inventorySlots instanceof ContainerPipeConfig) {
 						if (conf.filters.size() > button.id/2) {
-							filterType = conf.filters.get(button.id/2).filterType;
+							filterId = conf.filters.get(button.id/2).filterId;
+							blacklist = conf.filters.get(button.id/2).blacklist;
 						}
 					}
-					this.drawHoveringText("Filter: " + filterType.toString(), mouseX-guiLeft, mouseY-guiTop);
+					filterHoverText.set(0, "Filter: " + Filters.filters.get(filterId).getLongName() + (blacklist?" blacklist":""));
+					this.drawHoveringText(filterHoverText, mouseX-guiLeft, mouseY-guiTop);
 				}
 			}
 		}
@@ -106,13 +132,21 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 		
 		if (conf != null) {
 			if (button.id%2 == 1 && conf.filters.size() > button.id/2) { // filter type
-				FilterType current = conf.filters.get(button.id/2).filterType; //FilterType.fromShortString(button.displayString);
-				FilterType next = FilterType.values()[(current.ordinal()+1)%FilterType.values().length]; // cycle through
-				conf.filters.get(button.id/2).filterType = next;
+				if (isShiftKeyDown()) {
+					conf.filters.get(button.id/2).blacklist = !conf.filters.get(button.id/2).blacklist;
+				} else {
+					conf.filters.get(button.id/2).filterId = (conf.filters.get(button.id/2).filterId+1)%Filters.filters.size();
+				}
+			} else if (button.id%2 == 0 && conf.filters.size() > button.id/2) { // priority
+				conf.filters.get(button.id/2).priority += ((isShiftKeyDown())?-1:+1)*(isCtrlKeyDown()?10:1);
 			}
-			if (((ContainerPipeConfig)inventorySlots).te != null) {
-				PacketHandler.INSTANCE.sendToServer(new PacketFilterChange(((ContainerPipeConfig)inventorySlots).te.getPos(), button.id/2, conf.filters.get(button.id/2).priority, this.confTitle.equals("Sink configuration")?FilterFunction.FILTER_SINK:FilterFunction.FILTER_SUPPLY)); // TODO clean this shit
+			if (conf.filters.size() > button.id/2 && ((ContainerPipeConfig)inventorySlots).te != null) {
+				PacketHandler.INSTANCE.sendToServer(new PacketFilterChange(this.te.getPos(), button.id/2, conf.filters.get(button.id/2).filterId, conf.filters.get(button.id/2).blacklist, conf.filters.get(button.id/2).priority, this.filterFunction));
 			}
+		}
+		if (this.filterFunction == FilterFunction.FILTER_SINK && button.id == 18) { // set default route
+			this.te.isDefaultRoute = true;
+			PacketHandler.INSTANCE.sendToServer(new PacketSetDefaultRoute(this.te.getPos()));
 		}
 		this.updateButtonText(conf);
 	}

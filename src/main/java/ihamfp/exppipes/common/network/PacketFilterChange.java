@@ -3,7 +3,6 @@ package ihamfp.exppipes.common.network;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.TileEntitySupplierPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
-import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig.FilterType;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
@@ -20,14 +19,18 @@ public class PacketFilterChange implements IMessage {
 	
 	BlockPos pos;
 	int filterId;
+	int newFilter;
+	boolean blacklist;
 	int priority;
 	FilterFunction filterFunction;
 	
 	public PacketFilterChange() {}
 	
-	public PacketFilterChange(BlockPos pos, int filterId, int priority, FilterFunction filterFunction) {
+	public PacketFilterChange(BlockPos pos, int filterId, int newFilter, boolean blacklist, int priority, FilterFunction filterFunction) {
 		this.pos = pos;
 		this.filterId = filterId;
+		this.newFilter = newFilter;
+		this.blacklist = blacklist;
 		this.priority = priority;
 		this.filterFunction = filterFunction;
 	}
@@ -36,6 +39,8 @@ public class PacketFilterChange implements IMessage {
 	public void fromBytes(ByteBuf buf) {
 		this.pos = new BlockPos(buf.readInt(), buf.readInt(), buf.readInt());
 		this.filterId = buf.readInt();
+		this.newFilter = buf.readInt();
+		this.blacklist = buf.readBoolean();
 		this.priority = buf.readInt();
 		this.filterFunction = FilterFunction.values()[buf.readByte()];
 	}
@@ -46,6 +51,8 @@ public class PacketFilterChange implements IMessage {
 		buf.writeInt(this.pos.getY());
 		buf.writeInt(this.pos.getZ());
 		buf.writeInt(this.filterId);
+		buf.writeInt(this.newFilter);
+		buf.writeBoolean(blacklist);
 		buf.writeInt(this.priority);
 		buf.writeByte(this.filterFunction.ordinal());
 	}
@@ -77,7 +84,8 @@ public class PacketFilterChange implements IMessage {
 				}
 				
 				if (filter != null) { // Yes, I know it shouldn't be null at this point.
-					filter.filterType = FilterType.values()[(filter.filterType.ordinal()+1)%FilterType.values().length];
+					filter.filterId = message.newFilter;
+					filter.blacklist = message.blacklist;
 					filter.priority = message.priority;
 				}
 			});

@@ -1,5 +1,6 @@
 package ihamfp.exppipes.common;
 
+import ihamfp.exppipes.common.network.PacketFilterChange.FilterFunction;
 import ihamfp.exppipes.containers.ContainerPipeConfig;
 import ihamfp.exppipes.containers.ContainerPipeRequest;
 import ihamfp.exppipes.containers.GuiContainerPipeConfig;
@@ -39,9 +40,9 @@ public class GUIHandler implements IGuiHandler {
 		
 		switch (ID)	{
 		case 1: // sink config
-			return new GuiContainerPipeConfig(new ContainerPipeConfig(player.inventory, (TileEntityRoutingPipe) te, ((TileEntityRoutingPipe) te).sinkConfig), ((TileEntityRoutingPipe) te).sinkConfig, "Sink configuration");
+			return new GuiContainerPipeConfig(new ContainerPipeConfig(player.inventory, (TileEntityRoutingPipe) te, ((TileEntityRoutingPipe) te).sinkConfig), ((TileEntityRoutingPipe) te), FilterFunction.FILTER_SINK);
 		case 2:
-			return new GuiContainerPipeConfig(new ContainerPipeConfig(player.inventory, (TileEntityRoutingPipe) te, ((TileEntitySupplierPipe) te).supplyConfig), ((TileEntitySupplierPipe) te).supplyConfig, "Supply configuration");
+			return new GuiContainerPipeConfig(new ContainerPipeConfig(player.inventory, (TileEntityRoutingPipe) te, ((TileEntitySupplierPipe) te).supplyConfig), ((TileEntitySupplierPipe) te), FilterFunction.FILTER_SUPPLY);
 		case 3:
 			return new GuiContainerPipeRequest(new ContainerPipeRequest(player.inventory, (TileEntityRequestPipe)te), (TileEntityRequestPipe)te);
 		default:

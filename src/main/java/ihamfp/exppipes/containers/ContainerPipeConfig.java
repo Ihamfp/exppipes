@@ -8,10 +8,6 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.inventory.IInventory;
 
 public class ContainerPipeConfig extends ContainerBase<TileEntityRoutingPipe> {
-	public ContainerPipeConfig(IInventory playerInventory, TileEntityRoutingPipe te) {
-		this(playerInventory, te, te.sinkConfig);
-	}
-	
 	public ContainerPipeConfig(IInventory playerInventory, TileEntityRoutingPipe te, ConfigRoutingPipe conf) {
 		super(playerInventory, te);
 		

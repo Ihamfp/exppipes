@@ -1,7 +1,7 @@
 package ihamfp.exppipes.client.render;
 
+import ihamfp.exppipes.common.Configs;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
-import ihamfp.exppipes.tileentities.PipeItemHandler;
 import ihamfp.exppipes.tileentities.TileEntityPipe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
@@ -32,7 +32,7 @@ public class TESRPipe extends TileEntitySpecialRenderer<TileEntityPipe> {
 			for (ItemDirection stackDir : te.itemHandler.storedItems) {
 				float fTimer = (float)(te.getWorld().getTotalWorldTime() - stackDir.insertTime -1) + partialTicks;
 				
-				float partial = (fTimer / (float)PipeItemHandler.travelTime)-0.5f;
+				float partial = (fTimer / (float)Configs.travelTime)-0.5f;
 				if (partial > 1.0f || partial < -1.0f) partial = 0.0f;
 				float mvx = 0.0f;
 				float mvy = 0.0f;
