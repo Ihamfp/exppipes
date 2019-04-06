@@ -4,26 +4,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import ihamfp.exppipes.ExppipesMod;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.tileentity.TileEntity;
 
-public abstract class ContainerBase<T extends TileEntity> extends Container {
-	protected T te;
-	
-	Map<Integer,Slot> ownSlots = new HashMap<Integer,Slot>();
+public class ContainerBase extends Container {
+
 	Map<Integer,Slot> playerSlots = new HashMap<Integer,Slot>();
-	
-	public ContainerBase(IInventory playerInventory, T te) {
-		this.te = te;
-		//this.addOwnSlots();
-	}
-	
-	//protected abstract void addOwnSlots();
+	Map<Integer,Slot> ownSlots = new HashMap<Integer,Slot>();
 	
 	protected void addPlayerSlots(IInventory playerInventory, int invX, int invY) {
 		for (int col=0; col<9; col++) { // player hotbar
@@ -42,7 +32,7 @@ public abstract class ContainerBase<T extends TileEntity> extends Container {
 	
 	@Override
 	public ItemStack transferStackInSlot(EntityPlayer playerIn, int index) {
-		ExppipesMod.logger.info("transferStackInSlot: " + Integer.toString(index));
+		//ExppipesMod.logger.info("transferStackInSlot: " + Integer.toString(index));
 		
         if (this.ownSlots.size() == 0 || this.playerSlots.size() == 0) return ItemStack.EMPTY;
 		
@@ -73,7 +63,6 @@ public abstract class ContainerBase<T extends TileEntity> extends Container {
 
 	@Override
 	public boolean canInteractWith(EntityPlayer playerIn) {
-		return !this.te.isInvalid() && playerIn.getDistanceSqToCenter(this.te.getPos()) < 64D;
+		return true;
 	}
-
 }

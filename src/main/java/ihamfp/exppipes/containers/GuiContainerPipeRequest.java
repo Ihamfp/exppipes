@@ -82,9 +82,11 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 			InvCacheEntry entry = te.invCache.get(selected + page*itemsPerPage);
 			PacketHandler.INSTANCE.sendToServer(new PacketItemRequest(te.getPos(), new FilterConfig(entry.stack, 2, false), 1));
 			
-			entry.count--;
-			if (entry.count == 0) {
-				this.te.invCache.remove(entry);
+			if (entry.count != 0) { // if not a craftable thing
+				entry.count--; // do some client-side prediction
+				if (entry.count == 0) {
+					this.te.invCache.remove(entry);
+				}
 			}
 		} else if (button.id == 1) {
 			this.selected = -1;

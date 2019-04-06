@@ -89,6 +89,17 @@ public class Filters {
 				}
 				return false;
 			}
+			
+			@Override
+			public String getMatchingHint(ItemStack reference) {
+				int[] refOreIDs = OreDictionary.getOreIDs(reference);
+				String hint = "";
+				hint.concat(OreDictionary.getOreName(refOreIDs[0]));
+				for (int i=1; i<refOreIDs.length; i++) {
+					hint.concat(", " + OreDictionary.getOreName(refOreIDs[i]));
+				}
+				return hint;
+			}
 		});
 		
 		// Strict OreDict filter: match if all oreDict entry match
@@ -112,6 +123,17 @@ public class Filters {
 						if (refOreIDs[i] != stackOreIDs[i]) return false;
 				}
 				return true;
+			}
+			
+			@Override
+			public String getMatchingHint(ItemStack reference) {
+				int[] refOreIDs = OreDictionary.getOreIDs(reference);
+				String hint = "";
+				hint.concat(OreDictionary.getOreName(refOreIDs[0]));
+				for (int i=1; i<refOreIDs.length; i++) {
+					hint.concat(", " + OreDictionary.getOreName(refOreIDs[i]));
+				}
+				return hint;
 			}
 		});
 		
@@ -139,6 +161,17 @@ public class Filters {
 					}
 				}
 				return false;
+			}
+			
+			@Override
+			public String getMatchingHint(ItemStack reference) {
+				int[] refOreIDs = OreDictionary.getOreIDs(reference);
+				String hint = "";
+				hint.concat(OreDictionary.getOreName(refOreIDs[0]).replaceAll("[A-Z][a-z]+", ""));
+				for (int i=1; i<refOreIDs.length; i++) {
+					hint.concat(", " + OreDictionary.getOreName(refOreIDs[i]).replaceAll("[A-Z][a-z]+", ""));
+				}
+				return hint;
 			}
 		});
 		

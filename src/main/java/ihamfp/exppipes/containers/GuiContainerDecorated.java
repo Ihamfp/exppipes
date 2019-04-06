@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ihamfp.exppipes.ExppipesMod;
+import ihamfp.exppipes.Utils;
 import ihamfp.exppipes.tileentities.InvCacheEntry;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.GlStateManager;
@@ -127,10 +128,14 @@ public abstract class GuiContainerDecorated extends GuiContainer {
 			int ix = x+xGrid*18;
 			int iy = y+yGrid*18;
 			this.itemRender.renderItemIntoGUI(stacks.get(stackDrawn).stack, ix, iy);
-			this.itemRender.renderItemOverlayIntoGUI(fontRenderer, stacks.get(stackDrawn).stack, ix, iy, Integer.toString(stacks.get(stackDrawn).count));
+			int stackCount = stacks.get(stackDrawn).count;
+			boolean wasUnicode = fontRenderer.getUnicodeFlag();
+			if (stackCount >= 1000) fontRenderer.setUnicodeFlag(true); // Yes, I know, it's ugly
+			this.itemRender.renderItemOverlayIntoGUI(fontRenderer, stacks.get(stackDrawn).stack, ix, iy, (stackCount==0)?"c":Utils.formatNumber(stackCount));
 			if (mouseX-guiLeft > ix && mouseX-guiLeft < ix+18 && mouseY-guiTop > iy && mouseY-guiTop < iy+18) {
 				toolTipStack = stacks.get(stackDrawn).stack;
 			}
+			fontRenderer.setUnicodeFlag(wasUnicode);
 		}
 		RenderHelper.enableStandardItemLighting();
 		

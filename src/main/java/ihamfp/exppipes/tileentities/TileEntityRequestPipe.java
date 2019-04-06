@@ -33,17 +33,21 @@ public class TileEntityRequestPipe extends TileEntityRoutingPipe {
 		// remove all completed requests
 		this.itemHandler.tick(this.world.getTotalWorldTime());
 		List<Request> rRemove = new ArrayList<Request>();
-		for (Request r : this.requests) {
-			for (ItemDirection itemDir : itemHandler.storedItems) {
+		for (ItemDirection itemDir : itemHandler.storedItems) {
+			for (Request r : this.requests) {
+				if (rRemove.contains(r)) break;
 				if (itemDir.destination == this && (this.world.getTotalWorldTime()-itemDir.insertTime)>=Configs.travelTime && r.filter.doesMatch(itemDir.itemStack)) {
 					r.processingCount.addAndGet(-itemDir.itemStack.getCount());
 					if (r.processingCount.get() < 0) r.processingCount.set(0);
 					r.processedCount += itemDir.itemStack.getCount();
+					if (r.processedCount >= r.requestedCount) {
+						rRemove.add(r);
+					}
+					break;
 				}
+				
 			}
-			if (r.processedCount >= r.requestedCount) {
-				rRemove.add(r);
-			}
+			
 		}
 		this.requests.removeAll(rRemove);
 		if (this.network != null) {

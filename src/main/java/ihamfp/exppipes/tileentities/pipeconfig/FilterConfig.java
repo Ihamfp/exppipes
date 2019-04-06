@@ -69,6 +69,7 @@ public class FilterConfig implements INBTSerializable<NBTTagCompound> {
 	public void deserializeNBT(NBTTagCompound nbt) {
 		this.reference = new ItemStack(nbt);
 		this.filterId = nbt.getInteger("filterType");
+		if (this.filterId >= Filters.filters.size()) this.filterId = 0;
 		this.priority = nbt.getInteger("priority");
 		this.blacklist = nbt.getBoolean("blacklist");
 	}

@@ -37,7 +37,7 @@ public class PipeNetwork {
 		
 		// Check for requests first
 		for (Request req : this.requests) {
-			if (req.filter.doesMatch(stack)) { // we got one !
+			if (req.filter.doesMatch(stack) && req.processedCount < req.requestedCount) { // we got one !
 				if (req.filter.priority > priority) {
 					candidates.clear();
 					candidates.add(req.requester);
@@ -228,7 +228,7 @@ public class PipeNetwork {
 		}
 		for (TileEntityCraftingPipe pipe : this.crafters) {
 			for (int i=0; i<pipe.patternStorage.getSlots();i++) {
-				ItemStack[] patternResults = ItemCraftingPattern.getPatternResults(pipe.patternStorage.getStackInSlot(i));
+				List<ItemStack> patternResults = ItemCraftingPattern.getPatternResults(pipe.patternStorage.getStackInSlot(i));
 				for (ItemStack patternResult : patternResults) {
 					if (patternResult.isEmpty()) continue;
 					boolean added = false;

@@ -7,7 +7,7 @@ import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.inventory.IInventory;
 
-public class ContainerPipeConfig extends ContainerBase<TileEntityRoutingPipe> {
+public class ContainerPipeConfig extends ContainerTileEntity<TileEntityRoutingPipe> {
 	public ContainerPipeConfig(IInventory playerInventory, TileEntityRoutingPipe te, ConfigRoutingPipe conf) {
 		super(playerInventory, te);
 		

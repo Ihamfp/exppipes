@@ -4,6 +4,7 @@ import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.blocks.ModBlocks;
 import ihamfp.exppipes.common.network.PacketHandler;
 import ihamfp.exppipes.interfaces.IProxy;
+import ihamfp.exppipes.items.ModItems;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -14,6 +15,7 @@ public class CommonProxy implements IProxy {
 	@Override
 	public void preInit(FMLPreInitializationEvent event) {
 		ModBlocks.preInit();
+		ModItems.preInit();
 		PacketHandler.preInit();
 	}
 

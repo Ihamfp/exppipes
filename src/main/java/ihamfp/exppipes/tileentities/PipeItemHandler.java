@@ -89,7 +89,6 @@ public class PipeItemHandler implements IItemHandler, INBTSerializable<NBTTagCom
 		
 		NBTTagCompound nbt = new NBTTagCompound();
 		nbt.setTag("items", nbtList);
-		nbt.setInteger("size", this.storedItems.size());
 		return nbt;
 	}
 
@@ -102,7 +101,7 @@ public class PipeItemHandler implements IItemHandler, INBTSerializable<NBTTagCom
 		NBTTagList nbtList = nbt.getTagList("items", Constants.NBT.TAG_COMPOUND);
 		
 		this.storedItems.clear();
-		for (int i=0; i<nbt.getInteger("size"); i++) {
+		for (int i=0; i<nbtList.tagCount(); i++) {
 			NBTTagCompound entry = nbtList.getCompoundTagAt(i);
 			EnumFacing from = EnumFacing.byIndex(entry.getByte("from"));
 			EnumFacing to = null;

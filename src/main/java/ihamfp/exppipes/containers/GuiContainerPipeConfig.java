@@ -17,6 +17,7 @@ import ihamfp.exppipes.tileentities.pipeconfig.Filters;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.inventory.Container;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.TextFormatting;
 
 public class GuiContainerPipeConfig extends GuiContainerDecorated {
 	public static final int WIDTH = 176;
@@ -99,7 +100,7 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 	@SuppressWarnings("serial")
 	static List<String> filterHoverText = new ArrayList<String>() {{
 		add("Filter: ");
-		if (Configs.showHelpTooltips) add("(Shift+click to toggle blacklist)");
+		if (Configs.showHelpTooltips) add(TextFormatting.DARK_GRAY + "(Shift+click to toggle blacklist)");
 	}};
 	
 	@Override

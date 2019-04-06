@@ -13,4 +13,12 @@ public abstract class Filter {
 	public abstract String getShortName();
 	
 	public abstract boolean doesMatch(ItemStack reference, ItemStack stack);
+	
+	/***
+	 * Short text saying what's actually matched.
+	 * Example: for OreDict filter, returns all OreDict entries.
+	 */
+	public String getMatchingHint(ItemStack reference) {
+		return reference.getDisplayName();
+	}
 }

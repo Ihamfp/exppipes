@@ -52,7 +52,6 @@ public class ConfigRoutingPipe implements INBTSerializable<NBTTagCompound> {
 		
 		NBTTagCompound nbt = new NBTTagCompound();
 		nbt.setTag("filters", filterList);
-		nbt.setInteger("size", this.filters.size());
 		return nbt;
 	}
 
@@ -61,7 +60,7 @@ public class ConfigRoutingPipe implements INBTSerializable<NBTTagCompound> {
 		NBTTagList filterList = nbt.getTagList("filters", Constants.NBT.TAG_COMPOUND);
 		
 		this.filters.clear();
-		for (int i=0; i<nbt.getInteger("size");i++) {
+		for (int i=0; i<filterList.tagCount();i++) {
 			NBTTagCompound entry = filterList.getCompoundTagAt(i);
 			if (entry.hasKey("computer") && entry.getBoolean("computer")) {
 				this.computerFilters.add(new FilterConfig(entry));
