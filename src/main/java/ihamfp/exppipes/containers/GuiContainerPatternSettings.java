@@ -1,7 +1,6 @@
 package ihamfp.exppipes.containers;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import ihamfp.exppipes.ExppipesMod;
@@ -26,6 +25,7 @@ public class GuiContainerPatternSettings extends GuiContainerDecorated {
 	ItemStack pattern;
 	List<ItemStack> results;
 	List<FilterConfig> ingredients;
+	boolean hasChanged = false;
 	
 	public GuiContainerPatternSettings(Container inventorySlotsIn, int patternSlot) {
 		super(inventorySlotsIn);
@@ -50,8 +50,12 @@ public class GuiContainerPatternSettings extends GuiContainerDecorated {
 	
 	@Override
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
+		super.drawGuiContainerForegroundLayer(mouseX, mouseY);
+		
 		RenderHelper.disableStandardItemLighting();
 		RenderHelper.enableGUIStandardItemLighting();
+		
+		List<String> hoverText = null;
 		
 		// draw ingredients
 		for (int i=0; i<Integer.min(9, ingredients.size()); i++) {
@@ -66,10 +70,10 @@ public class GuiContainerPatternSettings extends GuiContainerDecorated {
 			this.itemRender.renderItemIntoGUI(stackToDraw, ix, iy);
 			this.itemRender.renderItemOverlayIntoGUI(fontRenderer, stackToDraw, ix, iy, Integer.toString(stackToDraw.getCount()));
 			if (mouseX-guiLeft >= ix && mouseX-guiLeft <= ix+16 && mouseY-guiTop >= iy && mouseY-guiTop <= iy+16) {
-				List<String> hoverText = new ArrayList<String>();
-				hoverText.add(stackToDraw.getDisplayName());
-				hoverText.add(TextFormatting.DARK_GRAY + "Filter: " + Filters.filters.get(ingredients.get(i).filterId).getLongName() + (ingredients.get(i).blacklist?" (Blacklist)":""));
-				this.drawHoveringText(hoverText, mouseX-this.guiLeft, mouseY-this.guiTop);
+				hoverText = this.getItemToolTip(stackToDraw);//new ArrayList<String>();
+				//hoverText.add(stackToDraw.getDisplayName());
+				hoverText.add(TextFormatting.DARK_GRAY + "Filter: " + Filters.filters.get(ingredients.get(i).filterId).getLongName() + (ingredients.get(i).blacklist?" blacklist":"") + " (Shift-click to cycle)");
+				//this.drawHoveringText(hoverText, mouseX-this.guiLeft, mouseY-this.guiTop);
 			}
 		}
 
@@ -83,12 +87,16 @@ public class GuiContainerPatternSettings extends GuiContainerDecorated {
 			if (mouseX-guiLeft >= ix && mouseX-guiLeft <= ix+16 && mouseY-guiTop >= iy && mouseY-guiTop <= iy+16) {
 				drawRect(ix, iy, ix + 16, iy + 16, -2130706433);
 				if (!stackToDraw.isEmpty()) {
-					this.renderToolTip(stackToDraw, mouseX-guiLeft, mouseY-guiTop);
+					hoverText = this.getItemToolTip(stackToDraw);
+					//this.renderToolTip(stackToDraw, mouseX-guiLeft, mouseY-guiTop);
 				}
 			}
 		}
 		RenderHelper.enableStandardItemLighting();
-		super.drawGuiContainerForegroundLayer(mouseX, mouseY);
+		
+		if (hoverText != null) {
+			this.drawHoveringText(hoverText, mouseX-this.guiLeft, mouseY-this.guiTop);
+		}
 	}
 
 	@Override
@@ -101,19 +109,27 @@ public class GuiContainerPatternSettings extends GuiContainerDecorated {
 			if (mouseX > 7 && mouseX < 63) { // ingredients
 				int ix = (mouseX-8)/18;
 				int i = (ix+3*iy);
-				if (heldStack.isEmpty()) {
+				if (isShiftKeyDown()) {
+					ingredients.get(i).filterId = (ingredients.get(i).filterId+1)%Filters.filters.size();
+				} else if (heldStack.isEmpty()) {
 					ingredients.set(i, null);
 				} else {
 					ingredients.set(i, new FilterConfig(heldStack.copy(), 0, false));
 				}
+				this.hasChanged = true;
 			} else if (mouseX > 115 && mouseX < 170) { // results
 				int ix = (mouseX-116)/18;
 				int i = (ix+3*iy);
 				if (ItemStack.areItemsEqual(heldStack, results.get(i))) {
-					results.get(i).grow(heldStack.getCount());
+					results.get(i).grow(mouseButton==1?1:heldStack.getCount());
+				} else if (heldStack.isEmpty() && !results.get(i).isEmpty() && mouseButton == 1) { // right click with empty hand
+					results.get(i).shrink(1);
 				} else {
-					results.set(i, heldStack.copy());
+					ItemStack putstack = heldStack.copy();
+					if (mouseButton == 1) putstack.setCount(1); // right click, only put 1
+					results.set(i, putstack);
 				}
+				this.hasChanged = true;
 			}
 		}
 		mouseX += this.guiLeft;
@@ -123,8 +139,10 @@ public class GuiContainerPatternSettings extends GuiContainerDecorated {
 
 	@Override
 	public void onGuiClosed() {
-		// send pattern data to the server
-		PacketHandler.INSTANCE.sendToServer(new PacketCraftingPatternData(this.results, this.ingredients));
+		if (this.hasChanged) {
+			// send pattern data to the server
+			PacketHandler.INSTANCE.sendToServer(new PacketCraftingPatternData(this.results, this.ingredients));
+		}
 		
 		super.onGuiClosed();
 	}

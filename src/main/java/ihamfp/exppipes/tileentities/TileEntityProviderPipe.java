@@ -22,7 +22,7 @@ public class TileEntityProviderPipe extends TileEntityRoutingPipe {
 				if (req.processedCount + req.processingCount.get() < req.requestedCount) { // if request not completed...
 					int neededCount = req.requestedCount-(req.processedCount+req.processingCount.get());
 					for (ItemStack stack : inventories.keySet()) {
-						if (req.filter.doesMatch(stack)) {
+						if (!stack.isEmpty() && req.filter.doesMatch(stack)) {
 							TileEntity invTE = inventories.get(stack);
 							EnumFacing extractFace = Utils.faceFromPos(this.pos, invTE.getPos());
 							ItemStack exStack = this.extractFrom(invTE.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, extractFace.getOpposite()), req.filter, neededCount);

@@ -30,10 +30,11 @@ public class TESRPipe extends TileEntitySpecialRenderer<TileEntityPipe> {
 			GlStateManager.scale(5/16D, 5/16D, 5/16D); // slightly smaller that 6/16
 			
 			for (ItemDirection stackDir : te.itemHandler.storedItems) {
-				float fTimer = (float)(te.getWorld().getTotalWorldTime() - stackDir.insertTime -1) + partialTicks;
+				float fTimer = (float)(te.getWorld().getTotalWorldTime() - stackDir.insertTime) + partialTicks;
 				
 				float partial = (fTimer / (float)Configs.travelTime)-0.5f;
 				if (partial > 1.0f || partial < -1.0f) partial = 0.0f;
+				partial *= 16/5D;
 				float mvx = 0.0f;
 				float mvy = 0.0f;
 				float mvz = 0.0f;

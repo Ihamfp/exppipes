@@ -89,7 +89,7 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	ItemStack extractFrom(IItemHandler itemHandler, FilterConfig filter, int count) {
 		ItemStack outStack = null;
 		for (int i=0; i<itemHandler.getSlots();i++) {
-			if (filter.doesMatch(itemHandler.getStackInSlot(i))) {
+			if (!itemHandler.getStackInSlot(i).isEmpty() && filter.doesMatch(itemHandler.getStackInSlot(i))) {
 				if (outStack == null) {
 					outStack = itemHandler.extractItem(i, count, false);
 					count = Integer.min(count, outStack.getMaxStackSize());

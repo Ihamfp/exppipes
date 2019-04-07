@@ -6,6 +6,7 @@ import java.util.List;
 import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.ModCreativeTabs;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -37,6 +38,27 @@ public class ItemCraftingPattern extends Item {
 		return new ActionResult<ItemStack>(EnumActionResult.SUCCESS, heldStack);
 	}
 	
+	@Override
+	public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+		List<ItemStack> results = getPatternResults(stack);
+		if (results.size() > 0) {
+			tooltip.add("Craft:");
+			for (ItemStack result : results) {
+				if (result.isEmpty()) continue;
+				tooltip.add(" - " + result.getDisplayName() + " x" + Integer.toString(result.getCount()));
+			}
+			List<FilterConfig> ingredients = getPatternIngredients(stack);
+			if (ingredients.size() > 0) {
+				tooltip.add("From: ");
+				for (FilterConfig ingredient : ingredients) {
+					if (ingredient == null) continue;
+					tooltip.add(" - " + ingredient.reference.getDisplayName() + " x" + Integer.toString(ingredient.reference.getCount()));
+				}
+			}
+		}
+		super.addInformation(stack, worldIn, tooltip, flagIn);
+	}
+
 	public static void setPatternResults(ItemStack pattern, List<ItemStack> results) {
 		NBTTagList resultTags = new NBTTagList();
 		for (ItemStack result : results) {
