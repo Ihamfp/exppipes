@@ -19,11 +19,8 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.registry.GameRegistry;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class TileEntityRequestPipe extends TileEntityRoutingPipe {
-	@SideOnly(Side.CLIENT)
 	public List<InvCacheEntry> invCache = null; // Filled when a packet is received. Used for the request pipe GUI
 	
 	public List<Request> requests = new ArrayList<Request>();

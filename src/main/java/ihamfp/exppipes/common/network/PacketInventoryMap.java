@@ -2,16 +2,16 @@ package ihamfp.exppipes.common.network;
 
 import java.util.ArrayList;
 
+import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.containers.GuiContainerPipeRequest;
 import ihamfp.exppipes.tileentities.InvCacheEntry;
 import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
@@ -52,9 +52,9 @@ public class PacketInventoryMap implements IMessage {
 		@Override
 		public IMessage onMessage(PacketInventoryMap message, MessageContext ctx) {
 			FMLCommonHandler.instance().getWorldThread(ctx.netHandler).addScheduledTask(() -> {
-				EntityPlayer clientPlayer = Minecraft.getMinecraft().player;
-				if (clientPlayer == null || clientPlayer.world == null) return;
-				TileEntity tile = clientPlayer.world.getTileEntity(message.pos);
+				World clientWorld = ExppipesMod.proxy.getClientWorld();
+				if (clientWorld == null) return;
+				TileEntity tile = clientWorld.getTileEntity(message.pos);
 				if (!(tile instanceof TileEntityRequestPipe)) return;
 				TileEntityRequestPipe terp = (TileEntityRequestPipe)tile;
 				

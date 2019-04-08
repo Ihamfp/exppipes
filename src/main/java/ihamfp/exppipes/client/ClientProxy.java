@@ -7,6 +7,8 @@ import ihamfp.exppipes.tileentities.TileEntityProviderPipe;
 import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.TileEntitySupplierPipe;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.World;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
@@ -32,6 +34,11 @@ public class ClientProxy extends CommonProxy {
 	@Override
 	public void postInit(FMLPostInitializationEvent event) {
 		super.postInit(event);
+	}
+	
+	@Override
+	public World getClientWorld() {
+		return Minecraft.getMinecraft().world;
 	}
 
 }

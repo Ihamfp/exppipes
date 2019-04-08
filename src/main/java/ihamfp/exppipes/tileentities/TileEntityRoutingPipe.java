@@ -26,8 +26,6 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.registry.GameRegistry;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 
@@ -45,7 +43,6 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 	public boolean isDefaultRoute = false;
 	
 	// Purely cosmetic, used to set the block state
-	@SideOnly(Side.CLIENT)
 	private static final PipeNetwork fakeNetwork = new PipeNetwork();
 	
 	// Other nodes by direction
