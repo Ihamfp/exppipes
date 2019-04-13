@@ -145,7 +145,6 @@ public class PipeNetwork {
 	}
 	
 	public void removeNode(TileEntityRoutingPipe node) {
-		ExppipesMod.logger.trace("Removing " + node.getPos().toString() + " from network");
 		nodes.remove(node);
 		providers.remove(node);
 		for (TileEntityRoutingPipe pipe : node.connectedNodes.values()) { // for all the nodes connected to he one to remove...

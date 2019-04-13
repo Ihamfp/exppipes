@@ -11,7 +11,7 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
 
-version = "0.1.5b"
+version = "0.1.6"
 group = "ihamfp.exppipes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "exppipes"
 
@@ -38,32 +38,17 @@ repositories {
 		name = "cil.li"
 		url = "http://maven.cil.li/"
 	}
+	maven {
+		name = "CurseForge"
+		url = "https://minecraft.curseforge.com/api/maven/"
+	}
 }
 
 dependencies {
 	deobfCompile "li.cil.oc:OpenComputers:MC1.12.2-1.7.+"
-	
-    // you may put jars on which you depend on in ./libs
-    // or you may define them like so..
-    //compile "some.group:artifact:version:classifier"
-    //compile "some.group:artifact:version"
-      
-    // real examples
-    //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
-    //compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
-
-    // the 'provided' configuration is for optional dependencies that exist at compile-time but might not at runtime.
-    //provided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
-
-    // the deobf configurations:  'deobfCompile' and 'deobfProvided' are the same as the normal compile and provided,
-    // except that these dependencies get remapped to your current MCP mappings
-    //deobfCompile 'com.mod-buildcraft:buildcraft:6.0.8:dev'
-    //deobfProvided 'com.mod-buildcraft:buildcraft:6.0.8:dev'
-
-    // for more info...
-    // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
-    // http://www.gradle.org/docs/current/userguide/dependency_management.html
-
+	deobfCompile "thaumcraft:thaumcraft:1.12.2:6.1.BETA26"
+	deobfCompile "gregtechce:gregtech:1.12.2:1.7.0.387"
+	deobfCompile "nuclearcraft-mod:NuclearCraft:2.15:1.12.2"
 }
 
 processResources {

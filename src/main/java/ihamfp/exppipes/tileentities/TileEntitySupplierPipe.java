@@ -50,6 +50,8 @@ public class TileEntitySupplierPipe extends TileEntityRoutingPipe {
 			}
 			if (r.processedCount >= r.requestedCount) {
 				rRemove.add(r);
+			} else if (this.network != null && !this.network.requests.contains(r)) { // if the request is not in the network list, by some black magic
+				this.network.requests.add(r);
 			}
 		}
 		this.requests.values().removeAll(rRemove);

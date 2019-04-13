@@ -3,11 +3,16 @@ package ihamfp.exppipes.tileentities.pipeconfig;
 import java.util.ArrayList;
 import java.util.List;
 
+import nc.capability.radiation.source.IRadiationSource;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
+import net.minecraftforge.fml.common.Loader;
 import net.minecraftforge.oredict.OreDictionary;
+import thaumcraft.api.aspects.Aspect;
+import thaumcraft.api.aspects.AspectHelper;
+import thaumcraft.api.aspects.AspectList;
 
 public class Filters {
 	@SuppressWarnings("serial")
@@ -204,6 +209,101 @@ public class Filters {
 				return false;
 			}
 		});
+		
+		if (Loader.isModLoaded("thaumcraft")) {
+			// Aspect filter: match on common aspect
+			add(new Filter() {
+				@Override
+				public String getLongName() {
+					return "Aspect";
+				}
+
+				@Override
+				public String getShortName() {
+					return "A";
+				}
+
+				@Override
+				public boolean doesMatch(ItemStack reference, ItemStack stack) {
+					AspectList refAspectlist = AspectHelper.getObjectAspects(reference);
+					AspectList stackAspectlist = AspectHelper.getObjectAspects(stack);
+					for (Aspect refAspect : refAspectlist.getAspects()) {
+						for (Aspect aspect : stackAspectlist.getAspects()) {
+							if (aspect.equals(refAspect)) return true;
+						}
+					}
+					return false;
+				}
+			});
+		}
+		
+		if (Loader.isModLoaded("nuclearcraft")) {
+			// Radiation > filter
+			add(new Filter() {
+				@Override
+				public String getLongName() {
+					return "More radioactive";
+				}
+
+				@Override
+				public String getShortName() {
+					return "R>";
+				}
+
+				@Override
+				public boolean doesMatch(ItemStack reference, ItemStack stack) {
+					IRadiationSource refRad = null;
+					IRadiationSource stackRad = null;
+					
+					if (reference.hasCapability(IRadiationSource.CAPABILITY_RADIATION_SOURCE, null)) {
+						refRad = reference.getCapability(IRadiationSource.CAPABILITY_RADIATION_SOURCE, null);
+					}
+					if (stack.hasCapability(IRadiationSource.CAPABILITY_RADIATION_SOURCE, null)) {
+						stackRad = stack.getCapability(IRadiationSource.CAPABILITY_RADIATION_SOURCE, null);
+					}
+
+					if (refRad == null && stackRad == null) return false;
+					else if (refRad == null && stackRad != null) return true;
+					else if (refRad != null && stackRad == null) return false;
+					else if (stackRad.getRadiationLevel() > refRad.getRadiationLevel()) return true;
+					
+					return false;
+				}
+			});
+			
+			// Radiation < filter
+			add(new Filter() {
+				@Override
+				public String getLongName() {
+					return "Less radioactive";
+				}
+
+				@Override
+				public String getShortName() {
+					return "R<";
+				}
+
+				@Override
+				public boolean doesMatch(ItemStack reference, ItemStack stack) {
+					IRadiationSource refRad = null;
+					IRadiationSource stackRad = null;
+					
+					if (reference.hasCapability(IRadiationSource.CAPABILITY_RADIATION_SOURCE, null)) {
+						refRad = reference.getCapability(IRadiationSource.CAPABILITY_RADIATION_SOURCE, null);
+					}
+					if (stack.hasCapability(IRadiationSource.CAPABILITY_RADIATION_SOURCE, null)) {
+						stackRad = stack.getCapability(IRadiationSource.CAPABILITY_RADIATION_SOURCE, null);
+					}
+					
+					if (refRad == null && stackRad == null) return false;
+					else if (refRad == null && stackRad != null) return true;
+					else if (refRad != null && stackRad == null) return false;
+					else if (stackRad.getRadiationLevel() < refRad.getRadiationLevel()) return true;
+					
+					return false;
+				}
+			});
+		}
 	}};
 	
 	public static Filter fromShortString(String shortName) {

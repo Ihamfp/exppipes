@@ -42,9 +42,10 @@ public class TileEntityRequestPipe extends TileEntityRoutingPipe {
 					}
 					break;
 				}
-				
+				if (this.network != null && !this.network.requests.contains(r)) {
+					this.network.requests.add(r);
+				}	
 			}
-			
 		}
 		this.requests.removeAll(rRemove);
 		if (this.network != null) {

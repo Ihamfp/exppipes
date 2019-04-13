@@ -10,7 +10,11 @@ public class Configs {
 	@Comment({"Enable help about how to use GUIs"})
 	public static boolean showHelpTooltips = true;
 	
-	@Comment({"Time in tick for an item to travel 1 pipe block"})
+	@Comment({"Time in ticks for an item to travel 1 pipe block"})
 	@RangeInt(min=0)
 	public static int travelTime = 4;
+	
+	@Comment({"Time in ticks between pipe network scan", "increasing will reduce server load, but also responsiveness"})
+	@RangeInt(min=0)
+	public static int updateInterval = 60; // In ticks, interval between searchNodes() calls
 }

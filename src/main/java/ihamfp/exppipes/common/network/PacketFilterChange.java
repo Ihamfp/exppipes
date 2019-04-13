@@ -77,6 +77,7 @@ public class PacketFilterChange implements IMessage {
 					break;
 				case FILTER_SUPPLY:
 					if (!(terp instanceof TileEntitySupplierPipe)) return;
+					if (((TileEntitySupplierPipe)terp).supplyConfig.filters.size() < message.filterId) return;
 					filter = ((TileEntitySupplierPipe)terp).supplyConfig.filters.get(message.filterId);
 					break;
 				default:

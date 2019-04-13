@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import ihamfp.exppipes.ExppipesMod;
+import ihamfp.exppipes.common.Configs;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.PipeNetwork;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
@@ -34,7 +34,6 @@ import net.minecraftforge.items.IItemHandler;
  */
 @Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "opencomputers")
 public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleComponent {
-	public static int updateInterval = 60; // In ticks, interval between searchNodes() calls
 	private int nextUpdate = 0; // decrement on each tick, update when 0 and reset to *updateInterval*
 	
 	// Used to store a list of nodes, providers, etc. and provide some network-wide functions
@@ -52,7 +51,6 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 	// this pipe's config
 	public ConfigRoutingPipe sinkConfig = new ConfigRoutingPipe(); // for accepting items
 	private String oldSinkConfig = "";
-	// sourceConfig defined only for ProviderPipes. Crafting pipes are provider pipes too btw, they just report craftable things
 	
 	/// Methods
 	
@@ -143,11 +141,6 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 				}
 			}
 		}
-		if (this.network != null) {
-			ExppipesMod.logger.trace(this.pos.toString() + " now in network " + this.network.toString());
-		} else {
-			ExppipesMod.logger.trace(this.pos.toString() + " has no network");
-		}
 	}
 	
 	@Override
@@ -155,7 +148,7 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		IBlockState currentState = this.world.getBlockState(this.pos);
 		if (this.nextUpdate <= 0) {
 			this.searchNodes();
-			this.nextUpdate = updateInterval;
+			this.nextUpdate = Configs.updateInterval;
 
 			this.world.notifyBlockUpdate(this.pos, currentState, currentState, 2);
 		}
@@ -177,10 +170,8 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		
 		for (ItemDirection i : this.itemHandler.storedItems) {
 			if (i.itemStack == null) continue;
-			ExppipesMod.logger.trace(" - " + i.itemStack.toString() + ", dest: " + ((i.destination != null)?(i.destination.getPos().toString()):"null") + ", now at " + this.pos.toString());
 			// First, check if the item is already on its destination node
 			if (i.destination == this && i.to == null) {
-				ExppipesMod.logger.trace(i.itemStack.toString() + " arrived at destination @ " + this.getPos().toString());
 				// check all sides for non-pipes inventories
 				for (EnumFacing e : EnumFacing.VALUES) {
 					BlockPos checking = this.pos.offset(e);
@@ -193,16 +184,13 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 				}
 			// Then, check if it should be redirected to the default route
 			} else if (i.destination == null && this.network != null) {
-				ExppipesMod.logger.trace(i.itemStack.toString() + " has no destination: sending to default route");
 				i.destination = this.network.getDefaultRoute(i.itemStack);
-				ExppipesMod.logger.trace("Destination found: " + ((i.destination!=null)?i.destination.getPos().toString():"null"));
 			}
 			
 			// Finally, try to route the item properly
 			if (this.network != null && i.destination != null && i.to == null) {
 				EnumFacing path = this.network.getShortestFace(this, i.destination);
 				if (path == null) {
-					ExppipesMod.logger.trace("no route to " + i.destination.getPos().toString() + " from " + this.getPos().toString());
 					i.destination = null; // destination either doesn't exist anymore or isn't reachable. Aborting.
 					continue;
 				}

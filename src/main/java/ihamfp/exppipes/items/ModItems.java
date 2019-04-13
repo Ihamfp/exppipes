@@ -12,6 +12,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class ModItems {
 	public static ItemCraftingPattern craftingPattern = new ItemCraftingPattern("craftingPattern");
+	public static ItemPipeDebug pipeDebug = new ItemPipeDebug("pipeDebug");
 	
 	public static void preInit() {
 		MinecraftForge.EVENT_BUS.register(new ModItems());
@@ -20,7 +21,9 @@ public class ModItems {
 	@SubscribeEvent
 	public void registerItems(RegistryEvent.Register<Item> event) {
 		craftingPattern.setTranslationKey(craftingPattern.getRegistryName().toString());
+		pipeDebug.setTranslationKey(pipeDebug.getRegistryName().toString());
 		event.getRegistry().register(craftingPattern);
+		event.getRegistry().register(pipeDebug);
 	}
 	
 	@SideOnly(Side.CLIENT)
