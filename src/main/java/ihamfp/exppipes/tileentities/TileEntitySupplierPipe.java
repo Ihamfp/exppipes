@@ -14,9 +14,12 @@ import ihamfp.exppipes.tileentities.pipeconfig.Filters;
 import li.cil.oc.api.machine.Arguments;
 import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.fml.common.Optional;
@@ -24,6 +27,8 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class TileEntitySupplierPipe extends TileEntityRoutingPipe {
 	public ConfigRoutingPipe supplyConfig = new ConfigRoutingPipe();
+	private String oldSupplyConfig = "";
+	
 	private Map<FilterConfig,Request> requests = new HashMap<FilterConfig,Request>();
 	
 	public boolean invContains(Map<ItemStack,TileEntity> inv, FilterConfig filter) {
@@ -37,6 +42,12 @@ public class TileEntitySupplierPipe extends TileEntityRoutingPipe {
 	
 	@Override
 	public void serverUpdate() {
+		if (!this.supplyConfig.toString().equals(this.oldSupplyConfig)) {
+			this.oldSupplyConfig = this.supplyConfig.toString();
+			IBlockState currentState = this.world.getBlockState(this.pos);
+			this.world.notifyBlockUpdate(this.pos, currentState, currentState, 2);
+		}
+		
 		// remove all completed requests
 		this.itemHandler.tick(this.world.getTotalWorldTime());
 		List<Request> rRemove = new ArrayList<Request>();
@@ -108,6 +119,24 @@ public class TileEntitySupplierPipe extends TileEntityRoutingPipe {
 		}
 		compound.setTag("requests", requests);
 		return super.writeToNBT(compound);
+	}
+	
+	@Override
+	public NBTTagCompound getUpdateTag() {
+		NBTTagCompound nbtTag = super.getUpdateTag();
+		if (!this.world.isRemote) { // sending from the server
+			nbtTag.setTag("supplyConfig", this.supplyConfig.serializeNBT());
+		}
+		return nbtTag;
+	}
+	
+	@Override
+	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
+		NBTTagCompound nbtTag = pkt.getNbtCompound();
+		if (this.world.isRemote) { // receiving from the client
+			this.supplyConfig.deserializeNBT(nbtTag.getCompoundTag("supplyConfig"));
+		}
+		super.onDataPacket(net, pkt);
 	}
 	
 	//////////Begin OpenComputers integration

@@ -11,16 +11,16 @@ public class Utils {
 		return null;
 	}
 	
-	public static String formatNumber(int number) {
-		if (number > 1000000000) {
-			return Float.toString(number/1000000000.0f).substring(0, 3) + "T";
-		}
-		if (number > 1000000) {
-			return Float.toString(number/1000000.0f).substring(0, 3) + "G";
-		}
-		if (number > 1000) {
+	public static String formatNumber(long number) {
+		if (number > 1000000000000L) {
+			return Float.toString(number/1000000000000.0f).substring(0, 3) + "T";
+		} else if (number > 1000000000L) {
+			return Float.toString(number/1000000000.0f).substring(0, 3) + "G";
+		} else if (number > 1000000L) {
+			return Float.toString(number/1000000.0f).substring(0, 3) + "M";
+		} else if (number > 1000L) {
 			return Float.toString(number/1000.0f).substring(0, 3) + "k";
 		}
-		return Integer.toString(number);
+		return Long.toString(number);
 	}
 }

@@ -79,46 +79,58 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		return invs;
 	}
 	
+	public boolean isPipe(TileEntity te) {
+		return (te instanceof TileEntityPipe);
+	}
+	
+	public boolean isPipe(BlockPos pos) {
+		return isPipe(this.world.getTileEntity(pos));
+	}
+	
 	/***
 	 * Get all connected nodes, on each side.
 	 */
 	public void searchNodes() {
-		//ExppipesMod.logger.info("Searching other nodes from " + this.pos.toString());
-		for (EnumFacing e : EnumFacing.VALUES) {
-			List<BlockPos> otherPipes = new ArrayList<BlockPos>();
-			BlockPos searchingAt = this.pos.offset(e);
-			TileEntityRoutingPipe foundNode = null;
-			EnumFacing foundFace = e.getOpposite(); // to mutually add nodes on face
+		this.connectedNodes.clear();
+		
+		List<BlockPos> checkedPipes = new ArrayList<BlockPos>();
+		checkedPipes.add(this.pos);
+		for (EnumFacing e : EnumFacing.VALUES) { // check this pipe's faces
+			int jumpCount = 0;
+			BlockPos currentPos = this.pos.offset(e);
 			
-			while (this.world.getTileEntity(searchingAt) instanceof TileEntityPipe) { // TODO integration with buildcraft, etc.
-				TileEntity te = this.world.getTileEntity(searchingAt);
-				if (te instanceof TileEntityRoutingPipe) { // found another node !
-					foundNode = (TileEntityRoutingPipe) te;
-					break;
-				}
-				
-				boolean found = false;
-				for (EnumFacing f : EnumFacing.VALUES) {
-					BlockPos nextSearch = searchingAt.offset(f);
-					if (otherPipes.contains(nextSearch)) continue; // prevent loops
-					
-					TileEntity nextTileEntity = this.world.getTileEntity(nextSearch);
-					if (nextTileEntity instanceof TileEntityPipe && nextTileEntity != this) { // found another pipe !
-						otherPipes.add(nextSearch);
-						searchingAt = nextSearch;
+			if (checkedPipes.contains(currentPos)) continue; // loop
+			if (!isPipe(currentPos)) continue; // nothing on this face
+			checkedPipes.add(currentPos);
+			
+			TileEntityRoutingPipe foundNode = null;
+			EnumFacing foundFace = null;
+			boolean foundNext = true;
+			while (foundNext && foundNode == null) { // follow the conduit
+				foundNext = false;
+				for (EnumFacing f : EnumFacing.VALUES) { // search for pipes connected to the currently checked pipe
+					BlockPos nextPos = currentPos.offset(f);
+					if (checkedPipes.contains(nextPos)) continue; // going backward
+					TileEntity nextTE = this.world.getTileEntity(nextPos);
+					if (nextTE != null && nextTE instanceof TileEntityRoutingPipe) { // found a routing pipe !
+						foundNode = (TileEntityRoutingPipe) nextTE;
 						foundFace = f.getOpposite();
-						found = true;
+						break;
+					} else if (isPipe(nextTE)) { // found a normal pipe
+						checkedPipes.add(nextPos);
+						currentPos = nextPos;
+						foundNext = true;
+						jumpCount++;
 						break;
 					}
 				}
-				if (!found) break; // ain't found nothing here
 			}
 			
 			if (foundNode != null) {
 				this.connectedNodes.put(e, foundNode);
-				this.nodeDist.put(e, otherPipes.size());
+				this.nodeDist.put(e, jumpCount);
 				foundNode.connectedNodes.put(foundFace, this);
-				foundNode.nodeDist.put(foundFace, otherPipes.size());
+				foundNode.nodeDist.put(foundFace, jumpCount);
 				
 				if (this.network == null && foundNode.network != null) { // append this node to foundNode's network
 					this.network = foundNode.network;
