@@ -1,0 +1,15 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"ingredients":[
+		{
+			"item": "exppipes:blockroutingpipe"
+		},
+		{
+			"item": "minecraft:hopper"
+		}
+	],
+	"result": {
+		"item": "exppipes:blockextractionpipe",
+		"count": 1
+	}
+}
