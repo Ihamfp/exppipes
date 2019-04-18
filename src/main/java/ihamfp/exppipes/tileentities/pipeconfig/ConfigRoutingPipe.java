@@ -15,6 +15,7 @@ public class ConfigRoutingPipe implements INBTSerializable<NBTTagCompound> {
 	public List<FilterConfig> computerFilters = new ArrayList<FilterConfig>(); // used with opencomputers to separate player and computer filters
 	
 	public boolean doesMatchAllFilters(ItemStack stack) {
+		if (stack.isEmpty()) return false;
 		for (FilterConfig filter : this.filters) {
 			if (!filter.doesMatch(stack)) return false;
 		}
@@ -25,6 +26,7 @@ public class ConfigRoutingPipe implements INBTSerializable<NBTTagCompound> {
 	}
 	
 	public boolean doesMatchAnyFilter(ItemStack stack) {
+		if (stack.isEmpty()) return false;
 		for (FilterConfig filter : this.filters) {
 			if (filter.doesMatch(stack)) return true;
 		}
