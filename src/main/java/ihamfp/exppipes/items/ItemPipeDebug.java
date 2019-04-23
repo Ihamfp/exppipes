@@ -26,9 +26,12 @@ public class ItemPipeDebug extends Item {
 				TileEntityRoutingPipe terp = (TileEntityRoutingPipe)te;
 				player.sendMessage(new TextComponentString("Connected nodes:"));
 				for (EnumFacing f : EnumFacing.VALUES) {
-					TileEntityRoutingPipe cnode = terp.connectedNodes.get(f);
+					BlockPos cnode = terp.connectedNodesPos.get(f);
 					if (cnode == null) continue;
 					player.sendMessage(new TextComponentString(f.getName() + ": " + cnode.toString()));
+				}
+				if (terp.network != null) {
+					player.sendMessage(new TextComponentString("Network: " + terp.network.toString()));
 				}
 			}
 		}
