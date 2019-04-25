@@ -1,6 +1,5 @@
 package ihamfp.exppipes.pipenetwork;
 
-import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 
@@ -17,17 +16,17 @@ public class ItemDirection {
 	 * Stores the final destination node
 	 * If null, the stack will be routed to the default destination.
 	 */
-	public TileEntityRoutingPipe destination;
+	public BlockDimPos destinationPos;
 	
-	public ItemDirection(ItemStack itemStack, EnumFacing from, TileEntityRoutingPipe dest, long insertTime) {
+	public ItemDirection(ItemStack itemStack, EnumFacing from, BlockDimPos dest, long insertTime) {
 		this(itemStack, from, null, dest, insertTime);
 	}
 	
-	public ItemDirection(ItemStack itemStack, EnumFacing from, EnumFacing to, TileEntityRoutingPipe dest, long insertTime) {
+	public ItemDirection(ItemStack itemStack, EnumFacing from, EnumFacing to, BlockDimPos dest, long insertTime) {
 		this.itemStack = itemStack;
 		this.from = from;
 		this.to = to; // will be set in pipe update
-		this.destination = dest;
+		this.destinationPos = dest;
 		this.insertTime = insertTime;
 	}
 }

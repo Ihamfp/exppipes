@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import ihamfp.exppipes.common.Configs;
+import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.Request;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
@@ -33,7 +34,7 @@ public class TileEntityRequestPipe extends TileEntityRoutingPipe {
 		for (ItemDirection itemDir : itemHandler.storedItems) {
 			for (Request r : this.requests) {
 				if (rRemove.contains(r)) break;
-				if (itemDir.destination == this && (this.world.getTotalWorldTime()-itemDir.insertTime)>=Configs.travelTime && r.filter.doesMatch(itemDir.itemStack)) {
+				if (itemDir.destinationPos != null && itemDir.destinationPos.isHere(this) && (this.world.getTotalWorldTime()-itemDir.insertTime)>=Configs.travelTime && r.filter.doesMatch(itemDir.itemStack)) {
 					r.processingCount.addAndGet(-itemDir.itemStack.getCount());
 					if (r.processingCount.get() < 0) r.processingCount.set(0);
 					r.processedCount += itemDir.itemStack.getCount();
@@ -60,7 +61,7 @@ public class TileEntityRequestPipe extends TileEntityRoutingPipe {
 		if (this.network != null) this.network.requests.removeAll(this.requests);
 		NBTTagList requests = compound.getTagList("requests", NBT.TAG_COMPOUND);
 		for (int i=0; i<requests.tagCount();i++) {
-			this.requests.add(new Request(this, (NBTTagCompound) requests.get(i)));
+			this.requests.add(new Request((NBTTagCompound) requests.get(i)));
 		}
 		if (this.network != null) this.network.requests.addAll(this.requests);
 		super.readFromNBT(compound);
@@ -91,7 +92,7 @@ public class TileEntityRequestPipe extends TileEntityRoutingPipe {
 		String item = args.checkString(0);
 		ItemStack stack = GameRegistry.makeItemStack(item, args.optInteger(3, 0), 1, args.optString(4, ""));
 		FilterConfig filter = new FilterConfig(stack, Filters.idFromShortString(args.optString(2, "D")), false);
-		this.requests.add(this.network.request(this, filter, args.optInteger(1, 1)));
+		this.requests.add(this.network.request(new BlockDimPos(this), filter, args.optInteger(1, 1)));
 		return null;
 	}
 	

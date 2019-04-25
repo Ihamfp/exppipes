@@ -7,6 +7,7 @@ import java.util.Map;
 
 import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.common.Configs;
+import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.PipeNetwork;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
@@ -48,7 +49,7 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 	// Other nodes by direction
 	//@Deprecated
 	//public Map<EnumFacing, TileEntityRoutingPipe> connectedNodes = new HashMap<EnumFacing, TileEntityRoutingPipe>();
-	public Map<EnumFacing, BlockPos> connectedNodesPos = new HashMap<EnumFacing, BlockPos>();
+	public Map<EnumFacing, BlockDimPos> connectedNodesPos = new HashMap<EnumFacing, BlockDimPos>();
 	public Map<EnumFacing, Integer> nodeDist = new HashMap<EnumFacing, Integer>(); // unused for now
 	
 	// this pipe's config
@@ -136,9 +137,9 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 			}
 			
 			if (foundNode != null) {
-				this.connectedNodesPos.put(e, foundNode.getPos());
+				this.connectedNodesPos.put(e, new BlockDimPos(foundNode));
 				this.nodeDist.put(e, jumpCount);
-				foundNode.connectedNodesPos.put(foundFace, this.getPos());
+				foundNode.connectedNodesPos.put(foundFace, new BlockDimPos(this));
 				foundNode.nodeDist.put(foundFace, jumpCount);
 				
 				if (this.network == null && foundNode.network != null) { // append this node to foundNode's network
@@ -194,7 +195,7 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		for (ItemDirection i : this.itemHandler.storedItems) {
 			if (i.itemStack == null) continue;
 			// First, check if the item is already on its destination node
-			if (i.destination == this && i.to == null) {
+			if (i.destinationPos != null && i.destinationPos.isHere(this) && i.to == null) {
 				// check all sides for non-pipes inventories
 				for (EnumFacing e : EnumFacing.VALUES) {
 					BlockPos checking = this.pos.offset(e);
@@ -206,15 +207,15 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 					break;
 				}
 			// Then, check if it should be redirected to the default route
-			} else if (i.destination == null && this.network != null) {
-				i.destination = this.network.getDefaultRoute(i.itemStack);
+			} else if (i.destinationPos == null && this.network != null) {
+				i.destinationPos = new BlockDimPos(this.network.getDefaultRoute(i.itemStack));
 			}
 			
 			// Finally, try to route the item properly
-			if (this.network != null && i.destination != null && i.to == null) {
-				EnumFacing path = this.network.getShortestFace(this, i.destination);
+			if (this.network != null && i.destinationPos != null && i.to == null) {
+				EnumFacing path = this.network.getShortestFace(this, i.destinationPos.getTE());
 				if (path == null) {
-					i.destination = null; // destination either doesn't exist anymore or isn't reachable. Aborting.
+					i.destinationPos = null; // destination either doesn't exist anymore or isn't reachable. Aborting.
 					continue;
 				}
 				i.to = path;

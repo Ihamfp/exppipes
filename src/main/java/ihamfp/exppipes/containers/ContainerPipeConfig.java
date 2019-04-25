@@ -1,7 +1,6 @@
 package ihamfp.exppipes.containers;
 
 import ihamfp.exppipes.ExppipesMod;
-import ihamfp.exppipes.containers.slot.ConfigSlot;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
 import net.minecraft.block.state.IBlockState;
@@ -25,7 +24,7 @@ public class ContainerPipeConfig extends ContainerTileEntity<TileEntityRoutingPi
 	
 	protected void addOwnSlots(ConfigRoutingPipe conf) {
 		for (int i=0; i<9;i++) {
-			this.ownSlots.put(this.inventorySlots.size(), this.addSlotToContainer(new ConfigSlot(conf, i, 8+i*18, 18)));
+			//this.ownSlots.put(this.inventorySlots.size(), this.addSlotToContainer(new ConfigSlot(conf, i, 8+i*18, 18)));
 		}
 	}
 }

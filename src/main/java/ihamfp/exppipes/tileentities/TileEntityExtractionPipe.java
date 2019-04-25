@@ -1,6 +1,7 @@
 package ihamfp.exppipes.tileentities;
 
 import ihamfp.exppipes.common.Configs;
+import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
 import net.minecraft.block.state.IBlockState;
@@ -47,7 +48,7 @@ public class TileEntityExtractionPipe extends TileEntityRoutingPipe {
 				
 				if (extracted == null || extracted.isEmpty()) continue;
 				
-				this.itemHandler.insertedItems.add(new ItemDirection(extracted, f, null, this.world.getTotalWorldTime()));
+				this.itemHandler.insertedItems.add(new ItemDirection(extracted, f, (BlockDimPos)null, this.world.getTotalWorldTime()));
 				break;
 			}
 		}

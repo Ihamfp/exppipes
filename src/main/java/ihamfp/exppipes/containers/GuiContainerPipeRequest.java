@@ -7,6 +7,7 @@ import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.common.network.PacketHandler;
 import ihamfp.exppipes.common.network.PacketInventoryRequest;
 import ihamfp.exppipes.common.network.PacketItemRequest;
+import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.tileentities.InvCacheEntry;
 import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
@@ -46,7 +47,7 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 	public void initGui() {
 		if (te.invCache == null) {
 			te.invCache = new ArrayList<InvCacheEntry>();
-			PacketHandler.INSTANCE.sendToServer(new PacketInventoryRequest(te.getPos()));
+			PacketHandler.INSTANCE.sendToServer(new PacketInventoryRequest(new BlockDimPos(te)));
 		}
 		super.initGui();
 		this.addButton(new GuiButton(0, guiLeft+106, guiTop+128, 64, 18, "Request"));
@@ -80,7 +81,7 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 		super.actionPerformed(button);
 		if (button.id == 0 && selected >= 0) { // request
 			InvCacheEntry entry = te.invCache.get(selected + page*itemsPerPage);
-			PacketHandler.INSTANCE.sendToServer(new PacketItemRequest(te.getPos(), new FilterConfig(entry.stack, 2, false), 1));
+			PacketHandler.INSTANCE.sendToServer(new PacketItemRequest(new BlockDimPos(te), new FilterConfig(entry.stack, 2, false), 1));
 			
 			if (entry.count != 0) { // if not a craftable thing
 				entry.count--; // do some client-side prediction
@@ -91,7 +92,7 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 		} else if (button.id == 1) {
 			this.selected = -1;
 			this.te.invCache.clear();
-			PacketHandler.INSTANCE.sendToServer(new PacketInventoryRequest(te.getPos()));
+			PacketHandler.INSTANCE.sendToServer(new PacketInventoryRequest(new BlockDimPos(te)));
 		} else if (button.id == 2) {
 			this.page++;
 			if (this.page > this.te.invCache.size()/itemsPerPage) {

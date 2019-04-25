@@ -3,6 +3,7 @@ package ihamfp.exppipes.tileentities;
 import java.util.List;
 
 import ihamfp.exppipes.items.ItemCraftingPattern;
+import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.Request;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import net.minecraft.item.ItemStack;
@@ -35,7 +36,7 @@ public class TileEntityCraftingPipe extends TileEntityRoutingPipe {
 								List<FilterConfig> ingredients = ItemCraftingPattern.getPatternIngredients(this.patternStorage.getStackInSlot(i));
 								for (FilterConfig ingFilter : ingredients) {
 									if (ingFilter == null) continue;
-									this.network.request(this, ingFilter, ingFilter.reference.getCount());
+									this.network.request(new BlockDimPos(this), ingFilter, ingFilter.reference.getCount());
 								}
 								break; // only request 1
 							}
