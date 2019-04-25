@@ -10,6 +10,7 @@ import ihamfp.exppipes.containers.GuiContainerPatternSettings;
 import ihamfp.exppipes.containers.GuiContainerPipeConfig;
 import ihamfp.exppipes.containers.GuiContainerPipeRequest;
 import ihamfp.exppipes.tileentities.TileEntityCraftingPipe;
+import ihamfp.exppipes.tileentities.TileEntityExtractionPipe;
 import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.TileEntitySupplierPipe;
@@ -41,6 +42,8 @@ public class GUIHandler implements IGuiHandler {
 				return new ContainerPipeRequest(player.inventory, (TileEntityRequestPipe)te);
 			case 4: // crafting pipe
 				return new ContainerCraftingPipe(player.inventory, (TileEntityCraftingPipe)te);
+			case 5: // extraction pipe
+				return new ContainerPipeConfig(player.inventory, (TileEntityRoutingPipe)te, ((TileEntityExtractionPipe)te).extractConfig);
 			default:
 				return null;
 			}
@@ -68,6 +71,8 @@ public class GUIHandler implements IGuiHandler {
 				return new GuiContainerPipeRequest(new ContainerPipeRequest(player.inventory, (TileEntityRequestPipe)te), (TileEntityRequestPipe)te);
 			case 4:
 				return new GuiContainerCraftingPipe(new ContainerCraftingPipe(player.inventory, (TileEntityCraftingPipe)te));
+			case 5:
+				return new GuiContainerPipeConfig(new ContainerPipeConfig(player.inventory, (TileEntityRoutingPipe)te, ((TileEntityExtractionPipe)te).extractConfig), ((TileEntityExtractionPipe)te), FilterFunction.FILTER_EXTRACT);
 			default:
 				return null;	
 			}

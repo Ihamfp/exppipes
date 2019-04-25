@@ -10,6 +10,7 @@ import ihamfp.exppipes.common.network.PacketFilterChange;
 import ihamfp.exppipes.common.network.PacketFilterChange.FilterFunction;
 import ihamfp.exppipes.common.network.PacketHandler;
 import ihamfp.exppipes.common.network.PacketSetDefaultRoute;
+import ihamfp.exppipes.tileentities.TileEntityExtractionPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.TileEntitySupplierPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
@@ -27,7 +28,7 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 	
 	public TileEntityRoutingPipe te = null;
 	public ConfigRoutingPipe conf = null;
-	public FilterFunction filterFunction = FilterFunction.FILTER_SINK;
+	public FilterFunction filterFunction = null;
 	public String confTitle = "Pipe configuration";
 	
 	public GuiContainerPipeConfig(Container inventorySlotsIn, TileEntityRoutingPipe te, FilterFunction filterFunction) {
@@ -36,9 +37,12 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 		this.conf = te.sinkConfig;
 		if (te instanceof TileEntitySupplierPipe && filterFunction == FilterFunction.FILTER_SUPPLY) {
 			this.conf = ((TileEntitySupplierPipe)te).supplyConfig;
+			this.confTitle = "Supply config";
+		} else if (te instanceof TileEntityExtractionPipe && filterFunction == FilterFunction.FILTER_EXTRACT) {
+			this.conf = ((TileEntityExtractionPipe)te).extractConfig;
+			this.confTitle = "Extract config";
 		}
 		this.filterFunction = filterFunction;
-		this.confTitle = (filterFunction == FilterFunction.FILTER_SUPPLY)?"Supply config":"Sink config";
 		if (conf == null) {
 			ExppipesMod.logger.error("No associated config found - displaying empty gui");
 		}

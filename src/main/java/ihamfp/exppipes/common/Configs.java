@@ -14,6 +14,10 @@ public class Configs {
 	@RangeInt(min=0)
 	public static int travelTime = 4;
 	
+	@Comment({"Time in ticks for an extraction pipe to extract 1 item"})
+	@RangeInt(min=0)
+	public static int extractTime = 4;
+	
 	@Comment({"Time in ticks between pipe network scan", "increasing will reduce server load, but also responsiveness"})
 	@RangeInt(min=0)
 	public static int updateInterval = 60; // In ticks, interval between searchNodes() calls

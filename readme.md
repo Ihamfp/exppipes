@@ -22,7 +22,7 @@ There will be some original ideas tho, I have a list somewhere...
  * [x] Item requests and providers
  * [x] OpenComputers integration
  * [x] Advanced pipe filters (fuzzy, oredict...) and prioritized sorting
- * [ ] Flowing items rendering
+ * [x] Flowing items rendering
  * [ ] Fluid pipes
  * [ ] Optional energy requirement (w/ GTCE support)
  * [ ] Multipart support

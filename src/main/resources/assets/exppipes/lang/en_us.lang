@@ -7,5 +7,6 @@ tile.exppipes:blocksupplierpipe.name=Supplier pipe
 tile.exppipes:blockrequestpipe.name=Request pipe
 tile.exppipes:blocknoinsertionpipe.name=No insertion pipe
 tile.exppipes:blockcraftingpipe.name=Crafting pipe
+tile.exppipes:blockextractionpipe.name=Extraction Pipe
 
 item.exppipes:craftingpattern.name=Crafting Pattern

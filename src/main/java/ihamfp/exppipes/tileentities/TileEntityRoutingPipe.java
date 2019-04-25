@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.common.Configs;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.PipeNetwork;
@@ -45,8 +46,10 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 	private static final PipeNetwork fakeNetwork = new PipeNetwork();
 	
 	// Other nodes by direction
-	public Map<EnumFacing, TileEntityRoutingPipe> connectedNodes = new HashMap<EnumFacing, TileEntityRoutingPipe>();
-	public Map<EnumFacing, Integer> nodeDist = new HashMap<EnumFacing, Integer>();
+	//@Deprecated
+	//public Map<EnumFacing, TileEntityRoutingPipe> connectedNodes = new HashMap<EnumFacing, TileEntityRoutingPipe>();
+	public Map<EnumFacing, BlockPos> connectedNodesPos = new HashMap<EnumFacing, BlockPos>();
+	public Map<EnumFacing, Integer> nodeDist = new HashMap<EnumFacing, Integer>(); // unused for now
 	
 	// this pipe's config
 	public ConfigRoutingPipe sinkConfig = new ConfigRoutingPipe(); // for accepting items
@@ -91,7 +94,7 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 	 * Get all connected nodes, on each side.
 	 */
 	public void searchNodes() {
-		this.connectedNodes.clear();
+		this.connectedNodesPos.clear();
 		
 		List<BlockPos> checkedPipes = new ArrayList<BlockPos>();
 		checkedPipes.add(this.pos);
@@ -106,30 +109,36 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 			TileEntityRoutingPipe foundNode = null;
 			EnumFacing foundFace = null;
 			boolean foundNext = true;
-			while (foundNext && foundNode == null) { // follow the conduit
-				foundNext = false;
-				for (EnumFacing f : EnumFacing.VALUES) { // search for pipes connected to the currently checked pipe
-					BlockPos nextPos = currentPos.offset(f);
-					if (checkedPipes.contains(nextPos)) continue; // going backward
-					TileEntity nextTE = this.world.getTileEntity(nextPos);
-					if (nextTE != null && nextTE instanceof TileEntityRoutingPipe) { // found a routing pipe !
-						foundNode = (TileEntityRoutingPipe) nextTE;
-						foundFace = f.getOpposite();
-						break;
-					} else if (isPipe(nextTE)) { // found a normal pipe
-						checkedPipes.add(nextPos);
-						currentPos = nextPos;
-						foundNext = true;
-						jumpCount++;
-						break;
+			
+			if (this.world.getTileEntity(currentPos) instanceof TileEntityRoutingPipe) {
+				foundNode = (TileEntityRoutingPipe) this.world.getTileEntity(currentPos);
+				foundFace = e.getOpposite();
+			} else {
+				while (foundNext && foundNode == null) { // follow the conduit
+					foundNext = false;
+					for (EnumFacing f : EnumFacing.VALUES) { // search for pipes connected to the currently checked pipe
+						BlockPos nextPos = currentPos.offset(f);
+						if (checkedPipes.contains(nextPos)) continue; // going backward
+						TileEntity nextTE = this.world.getTileEntity(nextPos);
+						if (nextTE != null && nextTE instanceof TileEntityRoutingPipe) { // found a routing pipe !
+							foundNode = (TileEntityRoutingPipe) nextTE;
+							foundFace = f.getOpposite();
+							break;
+						} else if (isPipe(nextTE)) { // found a normal pipe
+							checkedPipes.add(nextPos);
+							currentPos = nextPos;
+							foundNext = true;
+							jumpCount++;
+							break;
+						}
 					}
 				}
 			}
 			
 			if (foundNode != null) {
-				this.connectedNodes.put(e, foundNode);
+				this.connectedNodesPos.put(e, foundNode.getPos());
 				this.nodeDist.put(e, jumpCount);
-				foundNode.connectedNodes.put(foundFace, this);
+				foundNode.connectedNodesPos.put(foundFace, this.getPos());
 				foundNode.nodeDist.put(foundFace, jumpCount);
 				
 				if (this.network == null && foundNode.network != null) { // append this node to foundNode's network
@@ -142,7 +151,7 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 					this.network = new PipeNetwork();
 					this.network.nodes.add(this);
 					this.network.nodes.add(foundNode);
-				} else if (this.network != null && foundNode.network != null && this.network != foundNode.network) { // merge networks
+				} else if (this.network != null && foundNode.network != null && !this.network.equals(foundNode.network)) { // merge networks
 					this.network.nodes.addAll(foundNode.network.nodes);
 					this.network.providers.addAll(foundNode.network.providers);
 					this.network.requests.addAll(foundNode.network.requests);
@@ -150,6 +159,8 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 						networkTE.network = this.network;
 					}
 					foundNode.network = this.network;
+				} else if (this.network != foundNode.network) { // should never happen
+					ExppipesMod.logger.error("Unsupported merging");
 				}
 			}
 		}

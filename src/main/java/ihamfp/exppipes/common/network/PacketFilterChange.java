@@ -1,5 +1,6 @@
 package ihamfp.exppipes.common.network;
 
+import ihamfp.exppipes.tileentities.TileEntityExtractionPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.TileEntitySupplierPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
@@ -14,7 +15,8 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 public class PacketFilterChange implements IMessage {
 	public enum FilterFunction {
 		FILTER_SINK,
-		FILTER_SUPPLY;
+		FILTER_SUPPLY,
+		FILTER_EXTRACT;
 	}
 	
 	BlockPos pos;
@@ -79,6 +81,11 @@ public class PacketFilterChange implements IMessage {
 					if (!(terp instanceof TileEntitySupplierPipe)) return;
 					if (((TileEntitySupplierPipe)terp).supplyConfig.filters.size() < message.filterId) return;
 					filter = ((TileEntitySupplierPipe)terp).supplyConfig.filters.get(message.filterId);
+					break;
+				case FILTER_EXTRACT:
+					if (!(terp instanceof TileEntityExtractionPipe)) return;
+					if (((TileEntityExtractionPipe)terp).extractConfig.filters.size() < message.filterId) return;
+					filter = ((TileEntityExtractionPipe)terp).extractConfig.filters.get(message.filterId);
 					break;
 				default:
 					return;

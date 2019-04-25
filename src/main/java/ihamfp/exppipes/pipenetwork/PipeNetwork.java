@@ -17,6 +17,7 @@ import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 
 public class PipeNetwork {
 	public List<TileEntityRoutingPipe> nodes = new ArrayList<TileEntityRoutingPipe>();
@@ -52,7 +53,7 @@ public class PipeNetwork {
 			return candidates.get(0);
 		}
 		
-		if (this.defaultRoute != null && !this.defaultRoute.isInvalid()) candidates.add(this.defaultRoute); 
+		//if (this.defaultRoute != null && !this.defaultRoute.isInvalid()) candidates.add(this.defaultRoute); 
 		priority = Integer.MIN_VALUE; // start again !
 		List<TileEntityRoutingPipe> notBlacklisted = new ArrayList<TileEntityRoutingPipe>(); // un-prioritized pipe where the stack isn't blacklisted
 		for (TileEntityRoutingPipe pipe : this.nodes) {
@@ -87,7 +88,9 @@ public class PipeNetwork {
 		}
 		
 		if (candidates.size() == 0) {
-			if (notBlacklisted.size() > 0) {
+			if (this.defaultRoute != null && this.defaultRoute.isDefaultRoute) {
+				return this.defaultRoute;
+			} else if (notBlacklisted.size() > 0) {
 				Collections.shuffle(notBlacklisted);
 				return notBlacklisted.get(0);
 			}
@@ -110,31 +113,45 @@ public class PipeNetwork {
 		//  * Start from destination
 		//  * Try to propagate to source, one level at a time
 		//  * When source is found, return the side to the node who found it
-		List<TileEntityRoutingPipe> visitedNodes = new ArrayList<TileEntityRoutingPipe>();
-		visitedNodes.add(dest);
-		List<TileEntityRoutingPipe> buff = new ArrayList<TileEntityRoutingPipe>();
-		while (!visitedNodes.contains(source)) {
+		List<BlockPos> visitedNodes = new ArrayList<BlockPos>();
+		visitedNodes.add(dest.getPos());
+		List<BlockPos> buff = new ArrayList<BlockPos>();
+		
+		while (!visitedNodes.contains(source.getPos())) {
 			buff.clear();
-			for (TileEntityRoutingPipe v : visitedNodes) {
-				for (EnumFacing f : v.connectedNodes.keySet()) {
-					TileEntityRoutingPipe c = v.connectedNodes.get(f);
-					
-					if (c == source) { // Found the source ! Now get which side to send the item to
-						for (EnumFacing fSource : source.connectedNodes.keySet()) {
-							if (source.connectedNodes.get(fSource) == v) {
-								return fSource;
+			for (BlockPos vPos : visitedNodes) {
+				TileEntityRoutingPipe v = (TileEntityRoutingPipe) dest.getWorld().getTileEntity(vPos);
+				if (v.connectedNodesPos.containsValue(source.getPos())) {
+					if (!source.connectedNodesPos.containsValue(v.getPos())) {
+						ExppipesMod.logger.error("One-way connection wtf ?! searching v:" + v.getPos().toString() + "; source: " + source.getPos().toString());
+						for (EnumFacing f : EnumFacing.VALUES) {
+							if (v.connectedNodesPos.get(f) == null) continue;
+							ExppipesMod.logger.error("v=>" + f.getName() + "=>" + v.connectedNodesPos.get(f).toString());
+						}
+						for (EnumFacing f : EnumFacing.VALUES) {
+							if (source.connectedNodesPos.get(f) == null) continue;
+							ExppipesMod.logger.error("Source=>" + f.getName() + "=>" + source.connectedNodesPos.get(f).toString());
+						}
+					} else {
+						for (EnumFacing f : source.connectedNodesPos.keySet()) {
+							if (source.connectedNodesPos.get(f).equals(v.getPos())) {
+								return f;
 							}
 						}
+						return null;
 					}
-					
-					if (!visitedNodes.contains(c) && !buff.contains(c)) {
-						buff.add(c);
+				} else {
+					for (BlockPos p : v.connectedNodesPos.values()) {
+						if (!visitedNodes.contains(p) && !buff.contains(p)) buff.add(p);
 					}
 				}
 			}
 			visitedNodes.addAll(buff);
-			if (buff.size() == 0 && !visitedNodes.contains(source)) {
-				ExppipesMod.logger.error("Node is in network but not connected to it");
+			if (buff.size() == 0 && !visitedNodes.contains(source.getPos())) {
+				ExppipesMod.logger.error("Node is in network but not connected to it: source, " + source.getPos().toString());
+				for (BlockPos pos : visitedNodes) {
+					ExppipesMod.logger.error("    * " + pos.toString());
+				}
 				return null;
 			}
 		}
@@ -147,15 +164,16 @@ public class PipeNetwork {
 	public void removeNode(TileEntityRoutingPipe node) {
 		nodes.remove(node);
 		providers.remove(node);
-		for (TileEntityRoutingPipe pipe : node.connectedNodes.values()) { // for all the nodes connected to he one to remove...
+		for (BlockPos pipePos : node.connectedNodesPos.values()) { // for all the nodes connected to he one to remove...
 			List<EnumFacing> foundFace = new ArrayList<EnumFacing>();
-			for (EnumFacing f : pipe.connectedNodes.keySet()) { // search the face connected to the node to remove
-				if (pipe.connectedNodes.get(f) == node) { // and if it's this one,
+			TileEntityRoutingPipe pipe = (TileEntityRoutingPipe) node.getWorld().getTileEntity(pipePos);
+			for (EnumFacing f : pipe.connectedNodesPos.keySet()) { // search the face connected to the node to remove
+				if (pipe.connectedNodesPos.get(f) == node.getPos()) { // and if it's this one,
 					foundFace.add(f); // remove it
 				}
 			}
 			for (EnumFacing f : foundFace) {
-				pipe.connectedNodes.remove(f);
+				pipe.connectedNodesPos.remove(f);
 			}
 		}
 		
