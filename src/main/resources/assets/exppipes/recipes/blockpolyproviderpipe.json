@@ -1,0 +1,21 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"   ",
+		"aba",
+		"   "
+	],
+	"key": {
+		"a" : {
+			"type": "forge:ore_dict",
+			"ore" : "gemDiamond"
+		},
+		"b": {
+			"item": "exppipes:blockproviderpipe"
+		}
+	},
+	"result": {
+		"item": "exppipes:blockpolyproviderpipe",
+		"count": 1
+	}
+}
