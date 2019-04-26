@@ -16,6 +16,7 @@ import ihamfp.exppipes.tileentities.TileEntityProviderPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 
@@ -41,10 +42,10 @@ public class PipeNetwork {
 			if (req.filter.doesMatch(stack) && req.processedCount < req.requestedCount) { // we got one !
 				if (req.filter.priority > priority) {
 					candidates.clear();
-					candidates.add(req.requester);
+					candidates.add((TileEntityRoutingPipe) req.requester.getTE());
 					priority = req.filter.priority;
 				} else if (req.filter.priority == priority) {
-					candidates.add(req.requester);
+					candidates.add((TileEntityRoutingPipe) req.requester.getTE());
 				}
 			}
 		}
@@ -161,12 +162,18 @@ public class PipeNetwork {
 		return null;
 	}
 	
+	public EnumFacing getShortestFace(TileEntityRoutingPipe source, TileEntity dest) {
+		if (!(dest instanceof TileEntityRoutingPipe)) return null;
+		return getShortestFace(source, (TileEntityRoutingPipe)dest);
+	}
+	
 	public void removeNode(TileEntityRoutingPipe node) {
 		nodes.remove(node);
 		providers.remove(node);
 		for (BlockPos pipePos : node.connectedNodesPos.values()) { // for all the nodes connected to he one to remove...
 			List<EnumFacing> foundFace = new ArrayList<EnumFacing>();
 			TileEntityRoutingPipe pipe = (TileEntityRoutingPipe) node.getWorld().getTileEntity(pipePos);
+			if (pipe == null) continue;
 			for (EnumFacing f : pipe.connectedNodesPos.keySet()) { // search the face connected to the node to remove
 				if (pipe.connectedNodesPos.get(f) == node.getPos()) { // and if it's this one,
 					foundFace.add(f); // remove it
@@ -261,7 +268,7 @@ public class PipeNetwork {
 		return condInv;
 	}
 	
-	public Request request(TileEntityRoutingPipe requester, FilterConfig filter, int count) {
+	public Request request(BlockDimPos requester, FilterConfig filter, int count) {
 		Request req = new Request(requester, filter, count);
 		
 		if (this.requests.size() == 0) { // no request, just add one

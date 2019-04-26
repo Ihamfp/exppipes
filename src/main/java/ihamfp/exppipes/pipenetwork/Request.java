@@ -2,7 +2,6 @@ package ihamfp.exppipes.pipenetwork;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.INBTSerializable;
@@ -13,10 +12,11 @@ public class Request implements INBTSerializable<NBTTagCompound> {
 	 */
 	public Request parent = null;
 	/**
-	 * The {@link TileEntittyRoutingPipe} that requested the itemstack.
+	 * The position of the {@link TileEntityRoutingPipe} that requested the itemstack.
 	 * If null, set the {@link ItemDirection.destination} to null so that the item is sent to the default route
 	 */
-	public TileEntityRoutingPipe requester;
+	public BlockDimPos requester;
+	
 	/**
 	 * The requested ItemStack filter
 	 */
@@ -36,23 +36,24 @@ public class Request implements INBTSerializable<NBTTagCompound> {
 	 */
 	public int processedCount = 0;
 	
-	public Request(TileEntityRoutingPipe requester, FilterConfig filter, int requestedCount) {
+	public Request(BlockDimPos requester, FilterConfig filter, int requestedCount) {
 		this.requester = requester;
 		this.filter = filter;
 		this.requestedCount = requestedCount;
 	}
 	
-	public Request(TileEntityRoutingPipe requester, FilterConfig filter, int requestedCount, Request parent) {
+	public Request(BlockDimPos requester, FilterConfig filter, int requestedCount, Request parent) {
 		this(requester, filter, requestedCount);
 		this.parent = parent;
 	}
 	
-	public Request(TileEntityRoutingPipe requester, NBTTagCompound nbt) {
-		this.requester = requester;
+	public Request(NBTTagCompound nbt) {
 		this.filter = new FilterConfig(nbt.getCompoundTag("filter"));
 		this.requestedCount = nbt.getInteger("requested");
 		this.processingCount.set(nbt.getInteger("processing"));
 		this.processedCount = nbt.getInteger("processed");
+		int[] pos = nbt.getIntArray("requester");
+		if (pos.length == 4) this.requester = new BlockDimPos(pos[0], pos[1], pos[2], pos[3]);
 	}
 
 	@Override
@@ -62,6 +63,7 @@ public class Request implements INBTSerializable<NBTTagCompound> {
 		tag.setInteger("requested", this.requestedCount);
 		tag.setInteger("processing", this.processingCount.get());
 		tag.setInteger("processed", this.processedCount);
+		tag.setIntArray("requester", new int[] {requester.getX(), requester.getY(), requester.getZ(), requester.dimension});
 		return tag;
 	}
 
@@ -71,5 +73,7 @@ public class Request implements INBTSerializable<NBTTagCompound> {
 		this.requestedCount = nbt.getInteger("requested");
 		this.processingCount.set(nbt.getInteger("processing"));
 		this.processedCount = nbt.getInteger("processed");
+		int[] pos = nbt.getIntArray("requester");
+		if (pos.length == 4) this.requester = new BlockDimPos(pos[0], pos[1], pos[2], pos[3]);
 	}
 }

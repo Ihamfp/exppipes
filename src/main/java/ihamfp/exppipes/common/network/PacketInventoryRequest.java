@@ -2,29 +2,29 @@ package ihamfp.exppipes.common.network;
 
 import java.util.Map;
 
+import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
 // Received by server
 public class PacketInventoryRequest implements IMessage {
-	BlockPos pos;
+	BlockDimPos pos;
 	
 	public PacketInventoryRequest() {}
 	
-	public PacketInventoryRequest(BlockPos pos) {
+	public PacketInventoryRequest(BlockDimPos pos) {
 		this.pos = pos;
 	}
 
 	@Override
 	public void fromBytes(ByteBuf buf) {
-		this.pos = new BlockPos(buf.readInt(), buf.readInt(), buf.readInt());
+		this.pos = new BlockDimPos(buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt());
 	}
 
 	@Override
@@ -32,6 +32,7 @@ public class PacketInventoryRequest implements IMessage {
 		buf.writeInt(this.pos.getX());
 		buf.writeInt(this.pos.getY());
 		buf.writeInt(this.pos.getZ());
+		buf.writeInt(this.pos.dimension);
 	}
 	
 	public static class Handler implements IMessageHandler<PacketInventoryRequest,IMessage> {

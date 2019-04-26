@@ -3,8 +3,12 @@ package ihamfp.exppipes.tileentities.pipeconfig;
 import java.util.ArrayList;
 import java.util.List;
 
+import gregtech.api.capability.GregtechCapabilities;
+import gregtech.api.capability.IElectricItem;
 import nc.capability.radiation.source.IRadiationSource;
 import net.minecraft.item.ItemStack;
+import net.minecraftforge.energy.CapabilityEnergy;
+import net.minecraftforge.energy.IEnergyStorage;
 import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
 import net.minecraftforge.fluids.capability.IFluidHandlerItem;
 import net.minecraftforge.fluids.capability.IFluidTankProperties;
@@ -205,6 +209,60 @@ public class Filters {
 						}
 					}
 					if (isRefEmpty) return true; // Match any fluid-storing item
+				}
+				return false;
+			}
+		});
+		
+		add(new Filter() {
+			@Override
+			public String getLongName() {
+				return "Greater or equal energy %";
+			}
+
+			@Override
+			public String getShortName() {
+				return "E>";
+			}
+
+			@Override
+			public boolean doesMatch(ItemStack reference, ItemStack stack) {
+				if (reference.hasCapability(CapabilityEnergy.ENERGY, null) && stack.hasCapability(CapabilityEnergy.ENERGY, null)) {
+					IEnergyStorage refEnergy = reference.getCapability(CapabilityEnergy.ENERGY, null);
+					IEnergyStorage stackEnergy = stack.getCapability(CapabilityEnergy.ENERGY, null);
+					return (stackEnergy.getEnergyStored()/(double)stackEnergy.getMaxEnergyStored() >= refEnergy.getEnergyStored()/(double)refEnergy.getMaxEnergyStored());
+				} else if (Loader.isModLoaded("gregtech") && reference.hasCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null) && stack.hasCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null)) {
+					IElectricItem refElectric = reference.getCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null);
+					IElectricItem stackElectric = stack.getCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null);
+					if (refElectric.getTier() != stackElectric.getTier()) return false;
+					return (stackElectric.getCharge()/(double)stackElectric.getMaxCharge() >= refElectric.getCharge()/(double)refElectric.getMaxCharge());
+				}
+				return false;
+			}
+		});
+		
+		add(new Filter() {
+			@Override
+			public String getLongName() {
+				return "Lower or equal energy %";
+			}
+
+			@Override
+			public String getShortName() {
+				return "E<";
+			}
+
+			@Override
+			public boolean doesMatch(ItemStack reference, ItemStack stack) {
+				if (reference.hasCapability(CapabilityEnergy.ENERGY, null) && stack.hasCapability(CapabilityEnergy.ENERGY, null)) {
+					IEnergyStorage refEnergy = reference.getCapability(CapabilityEnergy.ENERGY, null);
+					IEnergyStorage stackEnergy = stack.getCapability(CapabilityEnergy.ENERGY, null);
+					return (stackEnergy.getEnergyStored()/(double)stackEnergy.getMaxEnergyStored() <= refEnergy.getEnergyStored()/(double)refEnergy.getMaxEnergyStored());
+				} else if (Loader.isModLoaded("gregtech") && reference.hasCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null) && stack.hasCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null)) {
+					IElectricItem refElectric = reference.getCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null);
+					IElectricItem stackElectric = stack.getCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null);
+					if (refElectric.getTier() != stackElectric.getTier()) return false;
+					return (stackElectric.getCharge()/(double)stackElectric.getMaxCharge() <= refElectric.getCharge()/(double)refElectric.getMaxCharge());
 				}
 				return false;
 			}

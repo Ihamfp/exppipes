@@ -1,5 +1,6 @@
 package ihamfp.exppipes.tileentities;
 
+import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
@@ -30,7 +31,7 @@ public class WrappedItemHandler implements IItemHandler {
 	public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
 		//ExppipesMod.logger.info("Inserting " + stack.toString() + " in slot " + Integer.toString(slot) + " from " + from.getName());
 		if (!simulate) {
-			this.handler.insertedItems.add(new ItemDirection(stack, from, null, 0));
+			this.handler.insertedItems.add(new ItemDirection(stack, from, (BlockDimPos)null, 0));
 		}
 		return ItemStack.EMPTY;
 	}

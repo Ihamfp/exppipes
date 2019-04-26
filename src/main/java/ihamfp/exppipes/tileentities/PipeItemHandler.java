@@ -3,13 +3,12 @@ package ihamfp.exppipes.tileentities;
 import java.util.ArrayList;
 import java.util.List;
 
+import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.INBTSerializable;
@@ -52,7 +51,7 @@ public class PipeItemHandler implements IItemHandler, INBTSerializable<NBTTagCom
 		// Don't care about the slot
 		// Always return empty
 		if (!simulate) {
-			this.insertedItems.add(new ItemDirection(stack, null, null, 0));
+			this.insertedItems.add(new ItemDirection(stack, null, null, (BlockDimPos)null, 0));
 		}
 		return ItemStack.EMPTY;
 	}
@@ -78,9 +77,9 @@ public class PipeItemHandler implements IItemHandler, INBTSerializable<NBTTagCom
 				entry.setByte("to", (byte)itemDir.to.getIndex());
 			}
 			entry.setLong("insertTime", itemDir.insertTime);
-			if (itemDir.destination != null && !itemDir.destination.isInvalid()) {
-				BlockPos destPos = itemDir.destination.getPos();
-				int[] posXYZ = {destPos.getX(), destPos.getY(), destPos.getZ()};
+			if (itemDir.destinationPos != null && !itemDir.destinationPos.hasTE()) {
+				BlockDimPos destPos = itemDir.destinationPos;
+				int[] posXYZ = {destPos.getX(), destPos.getY(), destPos.getZ(), destPos.dimension};
 				entry.setIntArray("destination", posXYZ);
 			}
 			
@@ -111,20 +110,25 @@ public class PipeItemHandler implements IItemHandler, INBTSerializable<NBTTagCom
 			ItemStack item = new ItemStack(entry);
 			long insertTime = entry.getLong("insertTime");
 			
-			if (!entry.hasKey("destination") || world == null) {
-				this.storedItems.add(new ItemDirection(item, from, to, null, insertTime)); // cannot get the world, cannot get the destination
+			if (!entry.hasKey("destination")) {
+				this.storedItems.add(new ItemDirection(item, from, to, (BlockDimPos)null, insertTime)); // cannot get the world, cannot get the destination
 				continue;
 			}
 			
 			int[] destPos = entry.getIntArray("destination");
-			TileEntity destTE = world.getTileEntity(new BlockPos(destPos[0], destPos[1], destPos[2]));
+			BlockDimPos destTE = null;
+			if (destPos.length < 4) {
+				destTE = new BlockDimPos(destPos[0], destPos[1], destPos[2], destPos[3]);
+			} else {
+				destTE = new BlockDimPos(destPos[0], destPos[1], destPos[2], 0);
+			}
 			int timer = entry.getInteger("timer");
-			if (destTE.isInvalid() || !(destTE instanceof TileEntityRoutingPipe)) {
-				this.storedItems.add(new ItemDirection(item, from, to, null, timer)); // cannot get the world, cannot get the destination
+			if (!destTE.hasTE() || !(destTE.getTE() instanceof TileEntityRoutingPipe)) {
+				this.storedItems.add(new ItemDirection(item, from, to, (BlockDimPos)null, timer)); // cannot get the world, cannot get the destination
 				continue;
 			}
 			
-			this.storedItems.add(new ItemDirection(item, from, (TileEntityRoutingPipe) destTE, timer));
+			this.storedItems.add(new ItemDirection(item, from, to, destTE, timer));
 		}
 	}
 	

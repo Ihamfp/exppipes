@@ -8,6 +8,7 @@ import java.util.List;
 import ihamfp.exppipes.common.Configs;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
+import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
@@ -75,7 +76,7 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 			IItemHandler itemHandler = this.world.getTileEntity(check).getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, f.getOpposite());
 			if (itemHandler instanceof PipeItemHandler || itemHandler instanceof WrappedItemHandler) continue;
 			
-			stack = this.insertInto(itemHandler, new ItemDirection(stack, null, null, this.world.getTotalWorldTime()), true);
+			stack = this.insertInto(itemHandler, new ItemDirection(stack, (EnumFacing)null, (BlockDimPos)null, this.world.getTotalWorldTime()), true);
 			if (stack.isEmpty()) return true;
 		}
 		return false;
@@ -144,7 +145,7 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 					} else {
 						i.from = i.to;
 						i.to = null;
-						i.destination = null;
+						i.destinationPos = null;
 						i.insertTime = this.world.getTotalWorldTime();
 					}
 				}
@@ -229,6 +230,7 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+		this.itemHandler.tick(this.world.getTotalWorldTime());
 		compound.setTag("itemhandler", this.itemHandler.serializeNBT());
 		return super.writeToNBT(compound);
 	}

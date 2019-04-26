@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import ihamfp.exppipes.common.Configs;
+import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.Request;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
@@ -53,7 +54,7 @@ public class TileEntitySupplierPipe extends TileEntityRoutingPipe {
 		List<Request> rRemove = new ArrayList<Request>();
 		for (Request r : this.requests.values()) {
 			for (ItemDirection itemDir : itemHandler.storedItems) {
-				if (itemDir.destination == this && (this.world.getTotalWorldTime()-itemDir.insertTime)>=Configs.travelTime && r.filter.doesMatch(itemDir.itemStack)) {
+				if (itemDir.destinationPos != null && itemDir.destinationPos.isHere(this) && (this.world.getTotalWorldTime()-itemDir.insertTime)>=Configs.travelTime && r.filter.doesMatch(itemDir.itemStack)) {
 					r.processingCount.addAndGet(-itemDir.itemStack.getCount());
 					if (r.processingCount.get() < 0) r.processingCount.set(0);
 					r.processedCount += itemDir.itemStack.getCount();
@@ -76,7 +77,7 @@ public class TileEntitySupplierPipe extends TileEntityRoutingPipe {
 		if (this.requests.size() == 0) { // temporary
 			for (FilterConfig filter : supplyConfig.filters) {
 				if (this.network != null && !this.requests.containsKey(filter) && this.canInsert(filter.reference)) {
-					this.requests.put(filter, this.network.request(this, filter, 1));
+					this.requests.put(filter, this.network.request(new BlockDimPos(this), filter, filter.reference.getCount()));
 					break;
 				}
 			}
@@ -84,7 +85,7 @@ public class TileEntitySupplierPipe extends TileEntityRoutingPipe {
 		if (this.requests.size() == 0) {
 			for (FilterConfig filter : supplyConfig.computerFilters) {
 				if (!invContains(inv, filter) && this.network != null && !this.requests.containsKey(filter) && this.canInsert(filter.reference)) {
-					this.requests.put(filter, this.network.request(this, filter, 1));
+					this.requests.put(filter, this.network.request(new BlockDimPos(this), filter, filter.reference.getCount()));
 					break;
 				}
 			}
@@ -99,7 +100,7 @@ public class TileEntitySupplierPipe extends TileEntityRoutingPipe {
 		NBTTagList requests = compound.getTagList("requests", NBT.TAG_COMPOUND);
 		for (int i=0; i<requests.tagCount();i++) {
 			NBTTagCompound extReq = (NBTTagCompound) requests.get(i);
-			this.requests.put(this.supplyConfig.filters.get(extReq.getInteger("supplierFilter")), new Request(this, extReq));
+			this.requests.put(this.supplyConfig.filters.get(extReq.getInteger("supplierFilter")), new Request(extReq));
 		}
 		if (this.network != null) this.network.requests.addAll(this.requests.values());
 		super.readFromNBT(compound);

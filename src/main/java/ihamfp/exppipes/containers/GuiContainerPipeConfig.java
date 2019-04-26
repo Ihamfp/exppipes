@@ -10,13 +10,17 @@ import ihamfp.exppipes.common.network.PacketFilterChange;
 import ihamfp.exppipes.common.network.PacketFilterChange.FilterFunction;
 import ihamfp.exppipes.common.network.PacketHandler;
 import ihamfp.exppipes.common.network.PacketSetDefaultRoute;
+import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.tileentities.TileEntityExtractionPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.TileEntitySupplierPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
+import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import ihamfp.exppipes.tileentities.pipeconfig.Filters;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.inventory.Container;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
 
@@ -111,7 +115,7 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 	protected void drawGuiContainerForegroundLayer(int mouseX, int mouseY) {
 		super.drawGuiContainerForegroundLayer(mouseX, mouseY);
 		
-		for (GuiButton button : this.buttonList) {
+		for (GuiButton button : this.buttonList) { // hover text
 			if (button.isMouseOver() && button.enabled && button.visible && conf != null && button.id/2 < conf.filters.size()) {
 				if (button.id%2 == 0) { // priority
 					this.drawHoveringText("Priority", mouseX-guiLeft, mouseY-guiTop);
@@ -129,30 +133,94 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 				}
 			}
 		}
+		
+		List<String> hoverText = null;
+		RenderHelper.disableStandardItemLighting();
+		RenderHelper.enableGUIStandardItemLighting();
+		for (int i=0; i<9; i++) { // filters items
+			int ix = 8+(i*18);
+			ItemStack stackToDraw = null;
+			if (i<conf.filters.size()) {
+				stackToDraw = conf.filters.get(i).reference;
+				this.itemRender.renderItemIntoGUI(stackToDraw, ix, 18);
+				this.itemRender.renderItemOverlayIntoGUI(fontRenderer, stackToDraw, ix, 18, stackToDraw.getCount()==1?"":Integer.toString(stackToDraw.getCount()));
+			}
+			if (mouseX-guiLeft >= ix && mouseX-guiLeft <= ix+16 && mouseY-guiTop >= 18 && mouseY-guiTop <= 18+16) {
+				drawRect(ix, 18, ix + 16, 18 + 16, -2130706433);
+				if (stackToDraw != null && !stackToDraw.isEmpty()) {
+					hoverText = this.getItemToolTip(stackToDraw);
+				}
+			}
+		}
+		RenderHelper.enableStandardItemLighting();
+		if (hoverText != null) {
+			this.drawHoveringText(hoverText, mouseX-this.guiLeft, mouseY-this.guiTop);
+		}
 	}
 
 	@Override
 	protected void actionPerformed(GuiButton button) throws IOException {
 		super.actionPerformed(button);
-		
-		if (conf != null) {
-			if (button.id%2 == 1 && conf.filters.size() > button.id/2) { // filter type
-				if (isShiftKeyDown()) {
-					conf.filters.get(button.id/2).blacklist = !conf.filters.get(button.id/2).blacklist;
-				} else {
-					conf.filters.get(button.id/2).filterId = (conf.filters.get(button.id/2).filterId+1)%Filters.filters.size();
-				}
-			} else if (button.id%2 == 0 && conf.filters.size() > button.id/2) { // priority
-				conf.filters.get(button.id/2).priority += ((isShiftKeyDown())?-1:+1)*(isCtrlKeyDown()?10:1);
-			}
-			if (conf.filters.size() > button.id/2 && ((ContainerPipeConfig)inventorySlots).te != null) {
-				PacketHandler.INSTANCE.sendToServer(new PacketFilterChange(this.te.getPos(), button.id/2, conf.filters.get(button.id/2).filterId, conf.filters.get(button.id/2).blacklist, conf.filters.get(button.id/2).priority, this.filterFunction));
-			}
-		}
 		if (this.filterFunction == FilterFunction.FILTER_SINK && button.id == 18) { // set default route
 			this.te.isDefaultRoute = true;
 			PacketHandler.INSTANCE.sendToServer(new PacketSetDefaultRoute(this.te.getPos()));
 		}
 		this.updateButtonText(conf);
+	}
+	
+	@Override
+	protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
+		mouseX -= this.guiLeft;
+		mouseY -= this.guiTop;
+		
+		// check buttons
+		int button = -1;
+		for (GuiButton butt : this.buttonList) {
+			if (butt.isMouseOver()) button = butt.id;
+		}
+		if (conf != null && button >= 0 && button/2 < this.conf.filters.size()) { // config button
+			if (button%2 == 1 && conf.filters.size() > button/2) { // filter type
+				if (isShiftKeyDown()) {
+					conf.filters.get(button/2).blacklist = !conf.filters.get(button/2).blacklist;
+				} else {
+					conf.filters.get(button/2).filterId = (conf.filters.get(button/2).filterId+((mouseButton==1 && conf.filters.get(button/2).filterId!=0)?-1:1))%Filters.filters.size();
+				}
+			} else if (button%2 == 0 && conf.filters.size() > button/2) { // priority
+				conf.filters.get(button/2).priority += ((mouseButton==1)?-1:+1)*(isShiftKeyDown()?10:1)*(isCtrlKeyDown()?100:1);
+			}
+			if (conf.filters.size() > button/2 && ((ContainerPipeConfig)inventorySlots).te != null) {
+				PacketHandler.INSTANCE.sendToServer(new PacketFilterChange(new BlockDimPos(this.te), button/2, conf.filters.get(button/2).filterId, conf.filters.get(button/2).blacklist, conf.filters.get(button/2).priority, conf.filters.get(button/2).reference, this.filterFunction));
+			}
+		}
+		
+		// check filter slots
+		if (mouseX >= 8 && mouseX <=168 && mouseY >= 18 && mouseY <= 34) {
+			int clickedSlot = (mouseX-8)/18;
+			ItemStack heldStack = this.mc.player.inventory.getItemStack();
+			if (clickedSlot < this.conf.filters.size()) { // existing filters
+				if (heldStack.isEmpty()) {
+					if (isShiftKeyDown()) this.conf.filters.get(clickedSlot).reference = ItemStack.EMPTY;
+					else this.conf.filters.get(clickedSlot).reference.shrink(1);
+				} else if (ItemStack.areItemsEqual(this.conf.filters.get(clickedSlot).reference, heldStack)) {
+					this.conf.filters.get(clickedSlot).reference.grow(mouseButton==1?1:heldStack.getCount());
+				} else {
+					this.conf.filters.get(clickedSlot).reference = heldStack.copy();
+					if (mouseButton == 1) this.conf.filters.get(clickedSlot).reference.setCount(1);
+				}
+				PacketHandler.INSTANCE.sendToServer(new PacketFilterChange(new BlockDimPos(this.te), clickedSlot, conf.filters.get(clickedSlot).filterId, conf.filters.get(clickedSlot).blacklist, conf.filters.get(clickedSlot).priority, conf.filters.get(clickedSlot).reference, this.filterFunction));
+				if (this.conf.filters.get(clickedSlot).reference.isEmpty()) {
+					this.conf.filters.remove(clickedSlot);
+				}
+			} else if (!heldStack.isEmpty()) {
+				this.conf.filters.add(new FilterConfig(heldStack.copy(), 0, false));
+				clickedSlot = this.conf.filters.size()-1;
+				if (mouseButton == 1) this.conf.filters.get(clickedSlot).reference.setCount(1);
+				PacketHandler.INSTANCE.sendToServer(new PacketFilterChange(new BlockDimPos(this.te), clickedSlot, conf.filters.get(clickedSlot).filterId, conf.filters.get(clickedSlot).blacklist, conf.filters.get(clickedSlot).priority, conf.filters.get(clickedSlot).reference, this.filterFunction));
+			}
+		}
+		
+		mouseX += this.guiLeft;
+		mouseY += this.guiTop;
+		super.mouseClicked(mouseX, mouseY, mouseButton);
 	}
 }

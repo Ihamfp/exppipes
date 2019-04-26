@@ -1,5 +1,6 @@
 package ihamfp.exppipes.common.network;
 
+import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.Request;
 import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
@@ -8,20 +9,19 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
 public class PacketItemRequest implements IMessage {
-	BlockPos pos;
+	BlockDimPos pos;
 	FilterConfig filter;
 	int count;
 	
 	public PacketItemRequest() {}
 	
-	public PacketItemRequest(BlockPos pos, FilterConfig filter, int count) {
+	public PacketItemRequest(BlockDimPos pos, FilterConfig filter, int count) {
 		this.pos = pos;
 		this.filter = filter;
 		this.count = count;
@@ -29,7 +29,7 @@ public class PacketItemRequest implements IMessage {
 
 	@Override
 	public void fromBytes(ByteBuf buf) {
-		this.pos = new BlockPos(buf.readInt(), buf.readInt(), buf.readInt());
+		this.pos = new BlockDimPos(buf.readInt(), buf.readInt(), buf.readInt(), buf.readInt());
 		ItemStack stack = ByteBufUtils.readItemStack(buf);
 		this.filter = new FilterConfig(stack, buf.readInt(), buf.readBoolean());
 		this.count = buf.readInt();
@@ -40,6 +40,7 @@ public class PacketItemRequest implements IMessage {
 		buf.writeInt(this.pos.getX());
 		buf.writeInt(this.pos.getY());
 		buf.writeInt(this.pos.getZ());
+		buf.writeInt(this.pos.dimension);
 		ByteBufUtils.writeItemStack(buf, this.filter.reference);
 		buf.writeInt(filter.filterId);
 		buf.writeBoolean(filter.blacklist);
@@ -59,7 +60,7 @@ public class PacketItemRequest implements IMessage {
 				TileEntityRoutingPipe terp = (TileEntityRoutingPipe)te; // just a cast, really
 				if (terp.network == null) return;
 				
-				Request req = terp.network.request(terp, message.filter, message.count);
+				Request req = terp.network.request(message.pos, message.filter, message.count);
 				if (terp instanceof TileEntityRequestPipe) {
 					((TileEntityRequestPipe)terp).requests.add(req);
 				}
