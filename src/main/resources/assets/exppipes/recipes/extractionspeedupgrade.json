@@ -1,0 +1,25 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"rdr",
+		"dud",
+		"rdr"
+	],
+	"key": {
+		"r" : {
+			"type": "forge:ore_dict",
+			"ore" : "dustRedstone"
+		},
+		"d" : {
+			"type": "forge:ore_dict",
+			"ore" : "gemDiamond"
+		},
+		"u": {
+			"item": "exppipes:pipeupgrade"
+		}
+	},
+	"result": {
+		"item": "exppipes:extractionspeedupgrade",
+		"count": 1
+	}
+}

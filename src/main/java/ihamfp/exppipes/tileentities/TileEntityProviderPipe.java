@@ -3,6 +3,7 @@ package ihamfp.exppipes.tileentities;
 import java.util.Map;
 
 import ihamfp.exppipes.Utils;
+import ihamfp.exppipes.items.ModItems;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.Request;
 import net.minecraft.item.ItemStack;
@@ -11,6 +12,15 @@ import net.minecraft.util.EnumFacing;
 import net.minecraftforge.items.CapabilityItemHandler;
 
 public class TileEntityProviderPipe extends TileEntityRoutingPipe {
+	public boolean leaveOneItem() {
+		for (int i=0; i<this.upgradesItemHandler.getSlots(); i++) {
+			if (this.upgradesItemHandler.getStackInSlot(i).getItem() == ModItems.itemLockUpgrade) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
 	@Override
 	public void serverUpdate() {
 		if (this.network != null && !this.network.providers.contains(this) && this.network.nodes.contains(this)) {
@@ -25,7 +35,8 @@ public class TileEntityProviderPipe extends TileEntityRoutingPipe {
 						if (!stack.isEmpty() && req.filter.doesMatch(stack)) {
 							TileEntity invTE = inventories.get(stack);
 							EnumFacing extractFace = Utils.faceFromPos(this.pos, invTE.getPos());
-							ItemStack exStack = this.extractFrom(invTE.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, extractFace.getOpposite()), req.filter, neededCount);
+							int maxExtract = stack.getCount()-(this.leaveOneItem()?1:0);
+							ItemStack exStack = this.extractFrom(invTE.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, extractFace.getOpposite()), req.filter, Integer.min(neededCount, maxExtract));
 							req.processingCount.addAndGet(exStack.getCount());
 							neededCount -= exStack.getCount();
 							this.itemHandler.insertedItems.add(new ItemDirection(exStack, extractFace, req.requester, this.world.getTotalWorldTime()));

@@ -7,6 +7,7 @@ import java.util.Map;
 
 import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.common.Configs;
+import ihamfp.exppipes.items.ModItems;
 import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.PipeNetwork;
@@ -37,7 +38,7 @@ import net.minecraftforge.items.ItemStackHandler;
  */
 @Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "opencomputers")
 public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleComponent {
-	public ItemStackHandler upgradesItemHandler = null; //new ItemStackHandler(4); // Might add more stacks if needed, but 4 seems enough for... 2 upgrades
+	public ItemStackHandler upgradesItemHandler = new ItemStackHandler(4); // Might add more stacks if needed, but 4 seems enough for... 2 upgrades
 	
 	private int nextUpdate = 0; // decrement on each tick, update when 0 and reset to *updateInterval*
 	
@@ -227,6 +228,30 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		super.serverUpdate();
 	}
 	
+	public int getMaxExtractSize() {
+		int size = Configs.extractSize;
+		for (int i=0; i<this.upgradesItemHandler.getSlots(); i++) {
+			ItemStack upgrade = this.upgradesItemHandler.getStackInSlot(i);
+			if (upgrade.getItem() == ModItems.pipeUpgrade) {
+				size = Configs.upgradedExtractSize;
+			} else if (upgrade.getItem() == ModItems.superPipeUpgrade) {
+				size = Configs.superUpgradedExtractSize;
+			}
+		}
+		return size;
+	}
+	
+	public int getExtractTime() {
+		int time = Configs.extractTime;
+		for (int i=0; i<this.upgradesItemHandler.getSlots(); i++) {
+			ItemStack upgrade = this.upgradesItemHandler.getStackInSlot(i);
+			if (upgrade.getItem() == ModItems.extractionSpeedUpgrade) {
+				time = Configs.upgradedExtractTime;
+			}
+		}
+		return time;
+	}
+	
 	@Override
 	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
 		if (oldState.getBlock() != newState.getBlock() && this.network != null) {
@@ -240,6 +265,7 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
 		this.sinkConfig.deserializeNBT(compound.getCompoundTag("config"));
+		this.upgradesItemHandler.deserializeNBT(compound.getCompoundTag("upgrades"));
 		this.isDefaultRoute = compound.getBoolean("isdefaultroute");
 		super.readFromNBT(compound);
 	}
@@ -247,6 +273,7 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 	@Override
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		compound.setTag("config", this.sinkConfig.serializeNBT());
+		compound.setTag("upgrades", this.upgradesItemHandler.serializeNBT());
 		compound.setBoolean("isdefaultroute", this.isDefaultRoute);
 		return super.writeToNBT(compound);
 	}

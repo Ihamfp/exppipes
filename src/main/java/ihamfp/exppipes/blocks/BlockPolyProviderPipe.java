@@ -1,7 +1,6 @@
 package ihamfp.exppipes.blocks;
 
 import ihamfp.exppipes.tileentities.TileEntityPolyProviderPipe;
-import ihamfp.exppipes.tileentities.TileEntityProviderPipe;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;

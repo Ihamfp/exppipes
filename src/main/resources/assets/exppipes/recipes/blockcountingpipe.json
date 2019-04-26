@@ -1,0 +1,15 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"ingredients":[
+		{
+			"item": "exppipes:blockpipe"
+		},
+		{
+			"item": "minecraft:comparator"
+		}
+	],
+	"result": {
+		"item": "exppipes:blockcountingpipe",
+		"count": 1
+	}
+}

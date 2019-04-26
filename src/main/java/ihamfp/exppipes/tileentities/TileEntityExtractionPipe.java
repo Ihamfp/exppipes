@@ -1,6 +1,5 @@
 package ihamfp.exppipes.tileentities;
 
-import ihamfp.exppipes.common.Configs;
 import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
@@ -28,7 +27,7 @@ public class TileEntityExtractionPipe extends TileEntityRoutingPipe {
 			this.world.notifyBlockUpdate(this.pos, currentState, currentState, 2);
 		}
 		
-		if (this.lastExtract+Configs.extractTime <= this.world.getTotalWorldTime()) {
+		if (this.lastExtract+this.getExtractTime() <= this.world.getTotalWorldTime()) {
 			this.lastExtract = this.world.getTotalWorldTime();
 			for (EnumFacing f : EnumFacing.VALUES) {
 				TileEntity te = this.world.getTileEntity(this.pos.offset(f));
@@ -40,9 +39,9 @@ public class TileEntityExtractionPipe extends TileEntityRoutingPipe {
 				ItemStack extracted = null;
 				for (int i=0; i<itemHandler.getSlots(); i++) {
 					ItemStack stackInSlotPre =itemHandler.getStackInSlot(i);
-					ItemStack stackInSlot = itemHandler.extractItem(i,Math.min(stackInSlotPre.getCount(),Configs.extractSize), true);
+					ItemStack stackInSlot = itemHandler.extractItem(i,Math.min(stackInSlotPre.getCount(), this.getMaxExtractSize()), true);
 					if (!stackInSlot.isEmpty() && (this.extractConfig.filters.size() == 0 || this.extractConfig.doesMatchAnyFilter(stackInSlot))) {
-						extracted = itemHandler.extractItem(i, Math.min(stackInSlotPre.getCount(),Configs.extractSize), false);
+						extracted = itemHandler.extractItem(i, Math.min(stackInSlotPre.getCount(), this.getMaxExtractSize()), false);
 						break;
 					}
 				}

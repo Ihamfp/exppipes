@@ -1,13 +1,18 @@
 itemGroup.exppipes.pipes=Exponentialistics Pipes
 
 tile.exppipes:blockpipe.name=Pipe
-tile.exppipes:blockroutingpipe.name=Routing pipe
-tile.exppipes:blockproviderpipe.name=Provider pipe
-tile.exppipes:blocksupplierpipe.name=Supplier pipe
-tile.exppipes:blockrequestpipe.name=Request pipe
-tile.exppipes:blocknoinsertionpipe.name=No insertion pipe
-tile.exppipes:blockcraftingpipe.name=Crafting pipe
+tile.exppipes:blockroutingpipe.name=Routing Pipe
+tile.exppipes:blockproviderpipe.name=Provider Pipe
+tile.exppipes:blocksupplierpipe.name=Supplier Pipe
+tile.exppipes:blockrequestpipe.name=Request Pipe
+tile.exppipes:blocknoinsertionpipe.name=No Insertion Pipe
+tile.exppipes:blockcraftingpipe.name=Crafting Pipe
 tile.exppipes:blockextractionpipe.name=Extraction Pipe
 tile.exppipes:blockpolyproviderpipe.name=Polymorphic Provider Pipe
+tile.exppipes:blockcountingpipe.name=Counting Pipe
 
 item.exppipes:craftingpattern.name=Crafting Pattern
+item.exppipes:pipeupgrade.name=Pipe Upgrade
+item.exppipes:superpipeupgrade.name=Super Pipe Upgrade
+item.exppipes:extractionspeedupgrade.name=Extraction Speed Upgrade
+item.exppipes:itemlockupgrade.name=Item Lock Upgrade

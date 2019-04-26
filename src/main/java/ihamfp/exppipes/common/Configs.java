@@ -17,11 +17,22 @@ public class Configs {
 	@Comment({"Time in ticks between extractions"})
 	@RangeInt(min=0)
 	public static int extractTime = 4;
+	
+	@Comment({"Upgraded time in ticks between extractions"})
+	@RangeInt(min=0)
+	public static int upgradedExtractTime = 1;
 
-	@Comment({"Maximum stack size to extract"})
+	@Comment({"Base maximum stack size to extract"})
 	@RangeInt(min = 1,max = 64)
-	public static int extractSize = 16;
-
+	public static int extractSize = 1;
+	
+	@Comment({"Upgraded maximum stack size to extract"})
+	@RangeInt(min=1, max=64)
+	public static int upgradedExtractSize = 16;
+	
+	@Comment({"Super upgraded maximum stack size to extract"})
+	@RangeInt(min=1, max=64)
+	public static int superUpgradedExtractSize = 64;
 	
 	@Comment({"Time in ticks between pipe network scan", "increasing will reduce server load, but also responsiveness"})
 	@RangeInt(min=0)

@@ -1,0 +1,21 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"rrr",
+		"rur",
+		"rrr"
+	],
+	"key": {
+		"r" : {
+			"type": "forge:ore_dict",
+			"ore" : "dustRedstone"
+		},
+		"u": {
+			"item": "exppipes:pipeupgrade"
+		}
+	},
+	"result": {
+		"item": "exppipes:superpipeupgrade",
+		"count": 1
+	}
+}

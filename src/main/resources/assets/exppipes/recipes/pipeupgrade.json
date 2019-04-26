@@ -1,0 +1,16 @@
+{
+	"type": "minecraft:crafting_shapeless",
+	"ingredients":[
+		{
+			"item": "minecraft:paper"
+		},
+		{
+			"type": "forge:ore_dict",
+			"ore": "dustRedstone"
+		}
+	],
+	"result": {
+		"item": "exppipes:pipeupgrade",
+		"count": 1
+	}
+}
