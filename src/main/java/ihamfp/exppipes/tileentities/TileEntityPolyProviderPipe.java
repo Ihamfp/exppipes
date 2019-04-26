@@ -35,7 +35,7 @@ public class TileEntityPolyProviderPipe extends TileEntityProviderPipe {
 				return;
 			}
 		});
-		if (found.get()) tempFilters.add(filter);
+		if (!found.get()) tempFilters.add(filter);
 	}
 
 	protected void removeUnneededFilters(){
