@@ -30,12 +30,15 @@ import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
 
 /***
  * Each routing pipe is a node in the network.
  */
 @Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "opencomputers")
 public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleComponent {
+	public ItemStackHandler upgradesItemHandler = null; //new ItemStackHandler(4); // Might add more stacks if needed, but 4 seems enough for... 2 upgrades
+	
 	private int nextUpdate = 0; // decrement on each tick, update when 0 and reset to *updateInterval*
 	
 	// Used to store a list of nodes, providers, etc. and provide some network-wide functions
@@ -207,7 +210,7 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 					break;
 				}
 			// Then, check if it should be redirected to the default route
-			} else if (i.destinationPos == null && this.network != null) {
+			} else if (i.destinationPos == null && this.network != null && this.network.getDefaultRoute(i.itemStack) != null) {
 				i.destinationPos = new BlockDimPos(this.network.getDefaultRoute(i.itemStack));
 			}
 			

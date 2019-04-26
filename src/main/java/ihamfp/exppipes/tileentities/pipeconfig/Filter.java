@@ -17,6 +17,7 @@ public abstract class Filter {
 	/***
 	 * Short text saying what's actually matched.
 	 * Example: for OreDict filter, returns all OreDict entries.
+	 * todo: use this somewhere
 	 */
 	public String getMatchingHint(ItemStack reference) {
 		return reference.getDisplayName();

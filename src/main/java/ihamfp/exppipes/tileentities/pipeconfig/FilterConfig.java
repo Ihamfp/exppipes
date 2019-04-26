@@ -73,4 +73,9 @@ public class FilterConfig implements INBTSerializable<NBTTagCompound> {
 		this.priority = nbt.getInteger("priority");
 		this.blacklist = nbt.getBoolean("blacklist");
 	}
+	
+	@Override
+	public String toString() {
+		return (Filters.filters.get(this.filterId).getLongName() + (this.blacklist?" (blacklist)":"") + ": " + this.reference.toString());
+	}
 }

@@ -100,6 +100,9 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 	@Override
 	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
 		mc.getTextureManager().bindTexture(background);
+		if (this.te.upgradesItemHandler != null) {
+			drawTexturedModalRect(guiLeft-44, guiTop, 180, 0, 47, 60);
+		}
 		drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize);
 		this.fontRenderer.drawString(this.confTitle, guiLeft+8, guiTop+6, 0x7f7f7f);
 		this.updateButtonText(conf); // Should maybe replace it with a less resource-intensive way... But I didn't find one

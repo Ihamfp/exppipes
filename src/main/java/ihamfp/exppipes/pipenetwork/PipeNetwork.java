@@ -67,6 +67,7 @@ public class PipeNetwork {
 				if (didMatch && !filter.blacklist && pipe.canInsert(stack)) {
 					if (filter.priority > maxPriority) {
 						maxPriority = filter.priority;
+						blacklisted = false;
 					}
 					valid = true;
 				} else if (!didMatch && filter.blacklist && filter.priority >= maxPriority) {
@@ -76,7 +77,7 @@ public class PipeNetwork {
 				}
 			}
 			
-			if (valid) {
+			if (valid && !blacklisted) {
 				if (maxPriority > priority) {
 					priority = maxPriority;
 					candidates.clear();

@@ -6,9 +6,9 @@ import java.util.Collections;
 import java.util.List;
 
 import ihamfp.exppipes.common.Configs;
+import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
-import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
@@ -238,7 +238,7 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	public NBTTagCompound getUpdateTag() {
 		NBTTagCompound nbtTag = new NBTTagCompound();
 		if (!this.world.isRemote) { // sending from the server
-			nbtTag.setTag("items", this.itemHandler.serializeNBT());
+			nbtTag.setTag("itemhandler", this.itemHandler.serializeNBT());
 		}
 		return nbtTag;
 	}
@@ -252,8 +252,8 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
 		NBTTagCompound nbtTag = pkt.getNbtCompound();
 		if (this.world.isRemote) { // receiving from the client
-			if (nbtTag.hasKey("items")) {
-				this.itemHandler.deserializeNBT(nbtTag.getCompoundTag("items"));
+			if (nbtTag.hasKey("itemhandler")) {
+				this.itemHandler.deserializeNBT(nbtTag.getCompoundTag("itemhandler"));
 			}
 		}
 		super.onDataPacket(net, pkt);
