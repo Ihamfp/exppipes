@@ -64,7 +64,8 @@ public class TileEntityPolyProviderPipe extends TileEntityProviderPipe {
 						if (!stack.isEmpty() && req.filter.doesMatch(stack)) {
 							TileEntity invTE = inventories.get(stack);
 							EnumFacing extractFace = Utils.faceFromPos(this.pos, invTE.getPos());
-							ItemStack exStack = this.extractFrom(invTE.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, extractFace.getOpposite()), req.filter, neededCount);
+							int maxExtract = stack.getCount()-(this.leaveOneItem()?1:0);
+							ItemStack exStack = this.extractFrom(invTE.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, extractFace.getOpposite()), req.filter, Integer.min(neededCount, maxExtract));
 							req.processingCount.addAndGet(exStack.getCount());
 							neededCount -= exStack.getCount();
 							this.itemHandler.insertedItems.add(new ItemDirection(exStack, extractFace, req.requester, this.world.getTotalWorldTime()));
