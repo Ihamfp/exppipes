@@ -14,9 +14,14 @@ public class Configs {
 	@RangeInt(min=0)
 	public static int travelTime = 4;
 	
-	@Comment({"Time in ticks for an extraction pipe to extract 1 item"})
+	@Comment({"Time in ticks between extractions"})
 	@RangeInt(min=0)
 	public static int extractTime = 4;
+
+	@Comment({"Maximum stack size to extract"})
+	@RangeInt(min = 1,max = 64)
+	public static int extractSize = 16;
+
 	
 	@Comment({"Time in ticks between pipe network scan", "increasing will reduce server load, but also responsiveness"})
 	@RangeInt(min=0)

@@ -38,9 +38,10 @@ public class TileEntityExtractionPipe extends TileEntityRoutingPipe {
 				
 				ItemStack extracted = null;
 				for (int i=0; i<itemHandler.getSlots(); i++) {
-					ItemStack stackInSlot = itemHandler.extractItem(i, 1, true);
+					ItemStack stackInSlotPre =itemHandler.getStackInSlot(i);
+					ItemStack stackInSlot = itemHandler.extractItem(i,Math.min(stackInSlotPre.getCount(),Configs.extractSize), true);
 					if (!stackInSlot.isEmpty() && (this.extractConfig.filters.size() == 0 || this.extractConfig.doesMatchAnyFilter(stackInSlot))) {
-						extracted = itemHandler.extractItem(i, 1, false);
+						extracted = itemHandler.extractItem(i, Math.min(stackInSlotPre.getCount(),Configs.extractSize), false);
 						break;
 					}
 				}
