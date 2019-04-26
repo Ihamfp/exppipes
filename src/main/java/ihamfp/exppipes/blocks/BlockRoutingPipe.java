@@ -2,22 +2,20 @@ package ihamfp.exppipes.blocks;
 
 import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
-import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
-import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
-import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.ChunkCache;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.items.IItemHandler;
 
 public class BlockRoutingPipe extends BlockPipe {
 	static final PropertyBool hasNetwork = PropertyBool.create("hasnetwork");
@@ -53,6 +51,14 @@ public class BlockRoutingPipe extends BlockPipe {
 		if (te instanceof TileEntityRoutingPipe && ((TileEntityRoutingPipe)te).network != null) {
 			((TileEntityRoutingPipe)te).network.removeNode((TileEntityRoutingPipe)te);
 		}
+		if (te instanceof TileEntityRoutingPipe) {
+			if (((TileEntityRoutingPipe)te).upgradesItemHandler != null) {
+				IItemHandler upgrades = ((TileEntityRoutingPipe)te).upgradesItemHandler;
+				for (int i=0; i<upgrades.getSlots(); i++) {
+					worldIn.spawnEntity(new EntityItem(worldIn, pos.getX(), pos.getY(), pos.getZ(), upgrades.getStackInSlot(i)));
+				}
+			}
+		}
 		super.breakBlock(worldIn, pos, state);
 	}
 
@@ -71,17 +77,5 @@ public class BlockRoutingPipe extends BlockPipe {
 		}
 		
 		return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
-	}
-	
-	@Override
-	public void getDrops(NonNullList<ItemStack> drops, IBlockAccess world, BlockPos pos, IBlockState state, int fortune) {
-		super.getDrops(drops, world, pos, state, fortune);
-		TileEntity tileEntity = world instanceof ChunkCache ? ((ChunkCache)world).getTileEntity(pos, Chunk.EnumCreateEntityType.CHECK) : world.getTileEntity(pos);
-		if (tileEntity instanceof TileEntityRoutingPipe && ((TileEntityRoutingPipe)tileEntity).sinkConfig != null) {
-			ConfigRoutingPipe cfg = ((TileEntityRoutingPipe)tileEntity).sinkConfig;
-			for (FilterConfig filter : cfg.filters) {
-				drops.add(filter.reference);
-			}
-		}
 	}
 }
