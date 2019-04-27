@@ -8,10 +8,13 @@ public abstract class Filter {
 	 */
 	public abstract String getLongName();
 	/***
-	 * Displayed on the button, never localized
+	 * Displayed on the button, never localized, must be unique
 	 */
 	public abstract String getShortName();
 	
+	/***
+	 * Check whether the items match.
+	 */
 	public abstract boolean doesMatch(ItemStack reference, ItemStack stack);
 	
 	/***
@@ -21,5 +24,12 @@ public abstract class Filter {
 	 */
 	public String getMatchingHint(ItemStack reference) {
 		return reference.getDisplayName();
+	}
+	
+	/***
+	 * Check if the filter can even match something with this reference
+	 */
+	public boolean willEverMatch(ItemStack reference) {
+		return true;
 	}
 }

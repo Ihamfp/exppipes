@@ -37,7 +37,7 @@ public class FilterConfig implements INBTSerializable<NBTTagCompound> {
 	}
 	
 	public FilterConfig(NBTTagCompound nbt) {
-		this(new ItemStack(nbt), nbt.getInteger("filterType"), nbt.getBoolean("blacklist"), nbt.getInteger("priority"));
+		this(new ItemStack(nbt), nbt.hasKey("filterTypeS")?Filters.idFromShortString(nbt.getString("filterTypeS")):nbt.getInteger("filterType"), nbt.getBoolean("blacklist"), nbt.getInteger("priority"));
 	}
 	
 	/***
@@ -59,7 +59,8 @@ public class FilterConfig implements INBTSerializable<NBTTagCompound> {
 	public NBTTagCompound serializeNBT() {
 		NBTTagCompound tag = new NBTTagCompound();
 		this.reference.writeToNBT(tag);
-		tag.setInteger("filterType", this.filterId);
+		//tag.setInteger("filterType", this.filterId); // integer filter *storage* is deprecated, will be remove in 0.3.0
+		tag.setString("filterTypeS", Filters.filters.get(filterId).getShortName());
 		tag.setInteger("priority", this.priority);
 		tag.setBoolean("blacklist", this.blacklist);
 		return tag;
@@ -68,7 +69,13 @@ public class FilterConfig implements INBTSerializable<NBTTagCompound> {
 	@Override
 	public void deserializeNBT(NBTTagCompound nbt) {
 		this.reference = new ItemStack(nbt);
-		this.filterId = nbt.getInteger("filterType");
+		if (nbt.hasKey("filterTypeS")) {
+			this.filterId = Filters.idFromShortString(nbt.getString("filterTypeS"));
+		} else if (nbt.hasKey("filterType")) { // legacy, TODO remove in 0.3.0
+			this.filterId = nbt.getInteger("filterType");
+		} else {
+			this.filterId = 0;
+		}
 		if (this.filterId >= Filters.filters.size()) this.filterId = 0;
 		this.priority = nbt.getInteger("priority");
 		this.blacklist = nbt.getBoolean("blacklist");

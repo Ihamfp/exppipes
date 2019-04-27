@@ -3,8 +3,12 @@ package ihamfp.exppipes.tileentities.pipeconfig;
 import java.util.ArrayList;
 import java.util.List;
 
+import forestry.api.genetics.AlleleManager;
+import forestry.api.genetics.IIndividual;
+import forestry.api.genetics.ISpeciesRoot;
 import gregtech.api.capability.GregtechCapabilities;
 import gregtech.api.capability.IElectricItem;
+import ihamfp.exppipes.ExppipesMod;
 import nc.capability.radiation.source.IRadiationSource;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.energy.CapabilityEnergy;
@@ -109,6 +113,11 @@ public class Filters {
 				}
 				return hint;
 			}
+			
+			@Override
+			public boolean willEverMatch(ItemStack reference) {
+				return OreDictionary.getOreIDs(reference).length != 0;
+			}
 		});
 		
 		// Strict OreDict filter: match if all oreDict entry match
@@ -143,6 +152,11 @@ public class Filters {
 					hint.concat(", " + OreDictionary.getOreName(refOreIDs[i]));
 				}
 				return hint;
+			}
+			
+			@Override
+			public boolean willEverMatch(ItemStack reference) {
+				return OreDictionary.getOreIDs(reference).length != 0;
 			}
 		});
 		
@@ -182,6 +196,11 @@ public class Filters {
 				}
 				return hint;
 			}
+			
+			@Override
+			public boolean willEverMatch(ItemStack reference) {
+				return OreDictionary.getOreIDs(reference).length != 0;
+			}
 		});
 		
 		// Fluid filter: match on contained fluid
@@ -212,6 +231,11 @@ public class Filters {
 				}
 				return false;
 			}
+			
+			@Override
+			public boolean willEverMatch(ItemStack reference) {
+				return reference.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
+			};
 		});
 		
 		add(new Filter() {
@@ -238,6 +262,14 @@ public class Filters {
 					return (stackElectric.getCharge()/(double)stackElectric.getMaxCharge() >= refElectric.getCharge()/(double)refElectric.getMaxCharge());
 				}
 				return false;
+			}
+			
+			@Override
+			public boolean willEverMatch(ItemStack reference) {
+				if (Loader.isModLoaded("gregtech") && reference.hasCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null)) {
+					return true;
+				}
+				return reference.hasCapability(CapabilityEnergy.ENERGY, null);
 			}
 		});
 		
@@ -266,7 +298,17 @@ public class Filters {
 				}
 				return false;
 			}
+			
+			@Override
+			public boolean willEverMatch(ItemStack reference) {
+				if (Loader.isModLoaded("gregtech") && reference.hasCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null)) {
+					return true;
+				}
+				return reference.hasCapability(CapabilityEnergy.ENERGY, null);
+			}
 		});
+		
+		//////////////// Thaumcraft
 		
 		if (Loader.isModLoaded("thaumcraft")) {
 			// Aspect filter: match on common aspect
@@ -292,8 +334,15 @@ public class Filters {
 					}
 					return false;
 				}
+				
+				@Override
+				public boolean willEverMatch(ItemStack reference) {
+					return AspectHelper.getObjectAspects(reference).size() > 0;
+				}
 			});
 		}
+		
+		//////////////// Nuclearcraft
 		
 		if (Loader.isModLoaded("nuclearcraft")) {
 			// Radiation > filter
@@ -360,6 +409,73 @@ public class Filters {
 					
 					return false;
 				}
+				
+				@Override
+				public boolean willEverMatch(ItemStack reference) {
+					return reference.hasCapability(IRadiationSource.CAPABILITY_RADIATION_SOURCE, null);
+				}
+			});
+		}
+		
+		//////////////// Forestry
+		
+		if (Loader.isModLoaded("forestry")) {
+			// Unanalyzed bees filter
+			add(new Filter() {
+				@Override
+				public String getLongName() {
+					return "Unanalyzed specimens";
+				}
+
+				@Override
+				public String getShortName() {
+					return "US";
+				}
+
+				@Override
+				public boolean doesMatch(ItemStack reference, ItemStack stack) {
+					if (AlleleManager.alleleRegistry.isIndividual(stack)) {
+						IIndividual individual = AlleleManager.alleleRegistry.getIndividual(stack);
+						if (!individual.getGenome().getSpeciesRoot().isMember(reference)) return false;
+						ISpeciesRoot speciesRoot = individual.getGenome().getSpeciesRoot();
+						return speciesRoot.getType(stack).equals(speciesRoot.getType(reference)) && !individual.isAnalyzed();
+					}
+					return false;
+				}
+				
+				@Override
+				public boolean willEverMatch(ItemStack reference) {
+					return AlleleManager.alleleRegistry.isIndividual(reference);
+				}
+			});
+			
+			// Genetic Equal filter
+			add(new Filter() {
+				@Override
+				public String getLongName() {
+					return "Genetic Equal";
+				}
+
+				@Override
+				public String getShortName() {
+					return "GE";
+				}
+
+				@Override
+				public boolean doesMatch(ItemStack reference, ItemStack stack) {
+					if (AlleleManager.alleleRegistry.isIndividual(stack) && AlleleManager.alleleRegistry.isIndividual(reference)) {
+						IIndividual ref = AlleleManager.alleleRegistry.getIndividual(reference);
+						IIndividual individual = AlleleManager.alleleRegistry.getIndividual(stack);
+						if (!ref.isAnalyzed() ||!individual.isAnalyzed()) return false;
+						return individual.getGenome().isGeneticEqual(ref.getGenome());
+					}
+					return false;
+				}
+				
+				@Override
+				public boolean willEverMatch(ItemStack reference) {
+					return AlleleManager.alleleRegistry.isIndividual(reference) && AlleleManager.alleleRegistry.getIndividual(reference).isAnalyzed();
+				}
 			});
 		}
 	}};
@@ -368,6 +484,7 @@ public class Filters {
 		for (Filter f : filters) {
 			if (f.getShortName().equals(shortName)) return f;
 		}
+		ExppipesMod.logger.error("Couldn't find filter " + shortName);
 		return null;
 	}
 	

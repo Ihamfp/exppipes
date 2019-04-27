@@ -183,10 +183,17 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 		}
 		if (conf != null && button >= 0 && button/2 < this.conf.filters.size()) { // config button
 			if (button%2 == 1 && conf.filters.size() > button/2) { // filter type
+				FilterConfig clickedFilter = conf.filters.get(button/2);
 				if (isShiftKeyDown()) {
-					conf.filters.get(button/2).blacklist = !conf.filters.get(button/2).blacklist;
+					clickedFilter.blacklist = !clickedFilter.blacklist;
 				} else {
-					conf.filters.get(button/2).filterId = (conf.filters.get(button/2).filterId+((mouseButton==1 && conf.filters.get(button/2).filterId!=0)?-1:1))%Filters.filters.size();
+					do {
+						if (mouseButton == 1) { // right click, decrement
+							clickedFilter.filterId = (clickedFilter.filterId==0)?Filters.filters.size()-1:(clickedFilter.filterId-1)%Filters.filters.size();
+						} else { // anything else, increment
+							clickedFilter.filterId = (clickedFilter.filterId+1)%Filters.filters.size();
+						}
+					} while (!Filters.filters.get(clickedFilter.filterId).willEverMatch(clickedFilter.reference));
 				}
 			} else if (button%2 == 0 && conf.filters.size() > button/2) { // priority
 				conf.filters.get(button/2).priority += ((mouseButton==1)?-1:+1)*(isShiftKeyDown()?10:1)*(isCtrlKeyDown()?100:1);
@@ -214,7 +221,7 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 				if (this.conf.filters.get(clickedSlot).reference.isEmpty()) {
 					this.conf.filters.remove(clickedSlot);
 				}
-			} else if (!heldStack.isEmpty()) {
+			} else if (!heldStack.isEmpty() && this.conf.filters.size()<9) { // add filter
 				this.conf.filters.add(new FilterConfig(heldStack.copy(), 0, false));
 				clickedSlot = this.conf.filters.size()-1;
 				if (mouseButton == 1) this.conf.filters.get(clickedSlot).reference.setCount(1);

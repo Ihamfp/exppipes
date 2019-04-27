@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-@SuppressWarnings("unused")
 public class TileEntityPolyProviderPipe extends TileEntityProviderPipe {
 
 	///WIP --- need more work on this, not fully keeping the filter set updated yet. Too Tired.

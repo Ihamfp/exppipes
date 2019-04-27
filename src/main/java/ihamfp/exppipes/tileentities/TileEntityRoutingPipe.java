@@ -211,8 +211,9 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 					break;
 				}
 			// Then, check if it should be redirected to the default route
-			} else if (i.destinationPos == null && this.network != null && this.network.getDefaultRoute(i.itemStack) != null) {
-				i.destinationPos = new BlockDimPos(this.network.getDefaultRoute(i.itemStack));
+			} else if (i.destinationPos == null && this.network != null) {
+				TileEntityRoutingPipe teDest = this.network.getDefaultRoute(i.itemStack);
+				if (teDest != null) i.destinationPos = new BlockDimPos(teDest);
 			}
 			
 			// Finally, try to route the item properly

@@ -4,6 +4,7 @@ import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.items.ItemUpgrade;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
+import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
@@ -12,6 +13,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.items.SlotItemHandler;
 
 public class ContainerPipeConfig extends ContainerTileEntity<TileEntityRoutingPipe> {
+	ConfigRoutingPipe conf;
+	
 	public ContainerPipeConfig(IInventory playerInventory, TileEntityRoutingPipe te, ConfigRoutingPipe conf) {
 		super(playerInventory, te);
 		
@@ -19,15 +22,16 @@ public class ContainerPipeConfig extends ContainerTileEntity<TileEntityRoutingPi
 			IBlockState currentState = te.getWorld().getBlockState(te.getPos());
 			te.getWorld().notifyBlockUpdate(te.getPos(), currentState, currentState, 2);
 		}
-
-		this.addOwnSlots(conf);
+		
+		this.conf = conf;
+		this.addOwnSlots();
 		this.addPlayerSlots(playerInventory, 8, 86);
 		if (conf == null) {
 			ExppipesMod.logger.error("No associated config found - creating empty container");
 		}
 	}
 	
-	protected void addOwnSlots(ConfigRoutingPipe conf) {
+	protected void addOwnSlots() {
 		if (this.te.upgradesItemHandler != null) {
 			for (int i=0; i<Integer.min(this.te.upgradesItemHandler.getSlots(), 4); i++) {
 				int ix = -36+((i%2)*18);
@@ -44,8 +48,11 @@ public class ContainerPipeConfig extends ContainerTileEntity<TileEntityRoutingPi
         ItemStack stack = slot.getStack();
         if (stack.getItem() instanceof ItemUpgrade && this.te.upgradesItemHandler != null) { // add upgrade
         	return super.transferStackInSlot(playerIn, index);
-        } else { // add config
-        	return ItemStack.EMPTY;
+        } else if (this.conf.filters.size() < 9) { // add config
+        	ItemStack filterStack = stack.copy();
+        	filterStack.setCount(1);
+        	this.conf.filters.add(new FilterConfig(filterStack, 0, false));
         }
+    	return ItemStack.EMPTY;
 	}
 }

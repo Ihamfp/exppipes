@@ -40,6 +40,10 @@ repositories {
 		url = "http://maven.cil.li/"
 	}
 	maven {
+		name = "Forestry & IC2"
+		url = "http://maven.ic2.player.to"
+	}
+	maven {
 		name = "CurseForge"
 		url = "https://minecraft.curseforge.com/api/maven/"
 	}
@@ -50,6 +54,7 @@ dependencies {
 	deobfCompile "thaumcraft:thaumcraft:1.12.2:6.1.BETA26"
 	deobfCompile "gregtechce:gregtech:1.12.2:1.7.0.387"
 	deobfCompile "nuclearcraft-mod:NuclearCraft:2.15:1.12.2"
+	deobfCompile "net.sengir.forestry:forestry_1.12.2:5.8.2.387"
 }
 
 processResources {

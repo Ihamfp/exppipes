@@ -64,7 +64,7 @@ public class PipeNetwork {
 			
 			for (FilterConfig filter : Iterables.concat(pipe.sinkConfig.filters, pipe.sinkConfig.computerFilters)) {
 				boolean didMatch = filter.doesMatch(stack);
-				if (didMatch && !filter.blacklist && pipe.canInsert(stack)) {
+				if (didMatch && !filter.blacklist && pipe.canInsert(stack) && filter.priority >= maxPriority) {
 					if (filter.priority > maxPriority) {
 						maxPriority = filter.priority;
 						blacklisted = false;
