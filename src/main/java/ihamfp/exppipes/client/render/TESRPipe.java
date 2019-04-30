@@ -5,7 +5,6 @@ import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.tileentities.TileEntityPipe;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.RenderItem;
 import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
@@ -22,7 +21,7 @@ public class TESRPipe extends TileEntitySpecialRenderer<TileEntityPipe> {
 			
 			RenderItem renderItem = Minecraft.getMinecraft().getRenderItem();
 			
-			RenderHelper.disableStandardItemLighting();
+			//RenderHelper.disableStandardItemLighting();
 			GlStateManager.enableLighting();
 			GlStateManager.pushMatrix();
 			

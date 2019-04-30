@@ -1,0 +1,11 @@
+{
+    "parent": "block/cube_directional",
+    "textures": {
+        "down": "blocks/brick",
+        "up": "blocks/brick",
+        "north": "blocks/bedrock",
+        "south": "blocks/brick",
+        "west": "blocks/brick",
+        "east": "blocks/brick"
+    }
+}

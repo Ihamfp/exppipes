@@ -1,12 +1,10 @@
 package ihamfp.exppipes.client;
 
 import ihamfp.exppipes.client.render.TESRPipe;
+import ihamfp.exppipes.client.render.TESRStackDisplay;
 import ihamfp.exppipes.common.CommonProxy;
 import ihamfp.exppipes.tileentities.TileEntityPipe;
-import ihamfp.exppipes.tileentities.TileEntityProviderPipe;
-import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
-import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
-import ihamfp.exppipes.tileentities.TileEntitySupplierPipe;
+import ihamfp.exppipes.tileentities.TileEntityStackDisplay;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -20,10 +18,7 @@ public class ClientProxy extends CommonProxy {
 	public void preInit(FMLPreInitializationEvent event) {
 		super.preInit(event);
 		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityPipe.class, new TESRPipe());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityRoutingPipe.class, new TESRPipe());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityRequestPipe.class, new TESRPipe());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityProviderPipe.class, new TESRPipe());
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntitySupplierPipe.class, new TESRPipe());
+		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityStackDisplay.class, new TESRStackDisplay());
 	}
 
 	@Override

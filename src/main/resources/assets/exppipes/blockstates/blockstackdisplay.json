@@ -1,0 +1,16 @@
+{
+    "variants": {
+        "pitch=north,yaw=north": { "model": "exppipes:blockstackdisplay" },
+        "pitch=north,yaw=south": { "model": "exppipes:blockstackdisplay", "y": 180 },
+        "pitch=north,yaw=east":  { "model": "exppipes:blockstackdisplay", "y": 270 },
+        "pitch=north,yaw=west":  { "model": "exppipes:blockstackdisplay", "y": 90 },
+        "pitch=up,yaw=north": { "model": "exppipes:blockstackdisplay", "x": 90 },
+        "pitch=up,yaw=south": { "model": "exppipes:blockstackdisplay", "x": 90, "y": 180 },
+        "pitch=up,yaw=east":  { "model": "exppipes:blockstackdisplay", "x": 90, "y": 270 },
+        "pitch=up,yaw=west":  { "model": "exppipes:blockstackdisplay", "x": 90, "y": 90 },
+        "pitch=down,yaw=north": { "model": "exppipes:blockstackdisplay", "x": -90 },
+        "pitch=down,yaw=south": { "model": "exppipes:blockstackdisplay", "x": -90, "y": 180 },
+        "pitch=down,yaw=east":  { "model": "exppipes:blockstackdisplay", "x": -90, "y": 270 },
+        "pitch=down,yaw=west":  { "model": "exppipes:blockstackdisplay", "x": -90, "y": 90 }
+    }
+}

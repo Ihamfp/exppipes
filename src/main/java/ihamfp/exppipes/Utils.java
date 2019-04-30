@@ -1,5 +1,8 @@
 package ihamfp.exppipes;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 
@@ -22,5 +25,23 @@ public class Utils {
 			return Float.toString(number/1000.0f).substring(0, 3) + "k";
 		}
 		return Long.toString(number);
+	}
+
+	@SuppressWarnings("serial")
+	public static final List<EnumFacing> pitches = new ArrayList<EnumFacing>() {{
+		add(EnumFacing.UP);
+		add(EnumFacing.NORTH);
+		add(EnumFacing.DOWN);
+	}};
+	
+	public static float getPitchAngle(EnumFacing f) {
+		switch (f) {
+		case UP:
+			return -90.0f;
+		case DOWN:
+			return 90.0f;
+		default:
+			return 0.0f;	
+		}
 	}
 }
