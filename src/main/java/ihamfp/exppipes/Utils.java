@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 
 public class Utils {
@@ -42,6 +43,18 @@ public class Utils {
 			return 90.0f;
 		default:
 			return 0.0f;	
+		}
+	}
+	
+	public static boolean bbContainsEq(AxisAlignedBB bb, float x, float y, float z) { // Literally AxisAlignedBB.contains with <=/>= 
+		if (x >= bb.minX && x <= bb.maxX) {
+			if (y >= bb.minY && y <= bb.maxY) {
+				return z >= bb.minZ && z <= bb.maxZ;
+			} else {
+				return false;
+			}
+		} else {
+			return false;
 		}
 	}
 }

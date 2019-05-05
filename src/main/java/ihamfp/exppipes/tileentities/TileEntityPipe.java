@@ -3,7 +3,9 @@ package ihamfp.exppipes.tileentities;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import ihamfp.exppipes.common.Configs;
 import ihamfp.exppipes.pipenetwork.BlockDimPos;
@@ -28,6 +30,7 @@ import net.minecraftforge.items.IItemHandler;
 
 public class TileEntityPipe extends TileEntity implements ITickable {
 	public PipeItemHandler itemHandler = new PipeItemHandler();
+	public Map<EnumFacing,Boolean> disableConnection = new HashMap<EnumFacing,Boolean>();
 	
 	@Override
 	public void update() {
@@ -152,7 +155,7 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 			} else if (i.to == null) { // search where to send to
 				Collections.shuffle(Arrays.asList(faceOrder));
 				for (EnumFacing e : faceOrder) {
-					if (e == i.from) continue;
+					if (e == i.from || this.disableConnection.getOrDefault(e, false)) continue;
 					BlockPos target = this.pos.offset(e);
 					if (this.world.getTileEntity(target) == null) continue;
 					
@@ -205,6 +208,9 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	@Override
 	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
 		if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
+			if (facing != null && this.disableConnection.getOrDefault(facing, false)) {
+				return false;
+			}
 			return true;
 		}
 		return super.hasCapability(capability, facing);
@@ -216,8 +222,9 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 		if (capability == CapabilityItemHandler.ITEM_HANDLER_CAPABILITY) {
 			if (facing == null) {
 				return (T) this.itemHandler;
+			} else if (!this.disableConnection.getOrDefault(facing, false)) {
+				return (T) (new WrappedItemHandler(facing, this.itemHandler));
 			}
-			return (T) (new WrappedItemHandler(facing, this.itemHandler));
 		}
 		return super.getCapability(capability, facing);
 	}
@@ -225,6 +232,12 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
 		this.itemHandler.deserializeNBT(compound.getCompoundTag("itemhandler"), this.getWorld());
+		NBTTagCompound discon = compound.getCompoundTag("discon");
+		for (EnumFacing f : EnumFacing.VALUES) {
+			if (discon.getBoolean(f.getName())) {
+				this.disableConnection.put(f, true);
+			}
+		}
 		super.readFromNBT(compound);
 	}
 
@@ -232,6 +245,11 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
 		this.itemHandler.tick(this.world.getTotalWorldTime());
 		compound.setTag("itemhandler", this.itemHandler.serializeNBT());
+		NBTTagCompound disCon = new NBTTagCompound();
+		for (EnumFacing f : this.disableConnection.keySet()) {
+			disCon.setBoolean(f.getName(), this.disableConnection.get(f));
+		}
+		compound.setTag("discon", disCon);
 		return super.writeToNBT(compound);
 	}
 	
@@ -240,6 +258,11 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 		if (!this.world.isRemote) { // sending from the server
 			nbtTag.setTag("itemhandler", this.itemHandler.serializeNBT());
 		}
+		NBTTagCompound disCon = new NBTTagCompound();
+		for (EnumFacing f : this.disableConnection.keySet()) {
+			disCon.setBoolean(f.getName(), this.disableConnection.get(f));
+		}
+		nbtTag.setTag("discon", disCon);
 		return nbtTag;
 	}
 	
@@ -254,6 +277,14 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 		if (this.world.isRemote) { // receiving from the client
 			if (nbtTag.hasKey("itemhandler")) {
 				this.itemHandler.deserializeNBT(nbtTag.getCompoundTag("itemhandler"));
+			}
+			if (nbtTag.hasKey("discon")) {
+				NBTTagCompound discon = nbtTag.getCompoundTag("discon");
+				for (EnumFacing f : EnumFacing.VALUES) {
+					if (discon.getBoolean(f.getName())) {
+						this.disableConnection.put(f, true);
+					}
+				}
 			}
 		}
 		super.onDataPacket(net, pkt);

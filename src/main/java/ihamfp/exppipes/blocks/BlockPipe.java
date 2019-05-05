@@ -7,6 +7,7 @@ import java.util.Map;
 
 import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.ModCreativeTabs;
+import ihamfp.exppipes.Utils;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.PipeNetwork;
 import ihamfp.exppipes.tileentities.TileEntityPipe;
@@ -22,6 +23,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
@@ -136,7 +138,41 @@ public class BlockPipe extends Block {
 		super.breakBlock(worldIn, pos, state);
 	}
 	
-	
+	@Override
+	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+		if (playerIn.isSneaking() && hand == EnumHand.MAIN_HAND && worldIn.getTileEntity(pos) instanceof TileEntityPipe) {
+			// get face to connect/disconnect
+			EnumFacing f = null;
+			if (Utils.bbContainsEq(bbCENTER, hitX, hitY, hitZ)) { // clicked on center/unconnected side
+				f = facing;
+			} else {
+				for (EnumFacing g : EnumFacing.VALUES) {
+					if (Utils.bbContainsEq(bbMap.get(g), hitX, hitY, hitZ)) {
+						f = g;
+					}
+				}
+			}
+			// connect/disconnect
+			if (f == null) return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+			TileEntityPipe te = (TileEntityPipe) worldIn.getTileEntity(pos);
+			if (worldIn.getTileEntity(pos.offset(f)) instanceof TileEntityPipe && !te.disableConnection.getOrDefault(f, false)) {
+				TileEntityPipe other = (TileEntityPipe) worldIn.getTileEntity(pos.offset(f));
+				if (other.disableConnection.getOrDefault(f.getOpposite(), false)) { // reconnect to the other pipe
+					other.disableConnection.put(f.getOpposite(), false);
+					worldIn.notifyBlockUpdate(other.getPos(), worldIn.getBlockState(other.getPos()), worldIn.getBlockState(other.getPos()), 1);
+					return true;
+				}
+			}
+			if (this.canConnectTo(pos.offset(f), f.getOpposite(), worldIn)) {
+				te.disableConnection.put(f, !te.disableConnection.getOrDefault(f, false));
+				worldIn.notifyBlockUpdate(pos, state, state.withProperty(propertyMap.get(f), !te.disableConnection.get(f)), 1);
+				ExppipesMod.logger.info("Face: " + f.getName() + " => " + te.disableConnection.getOrDefault(f,false).toString());
+			}
+			return true;
+		}
+		
+		return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+	}
 
 	@Override
 	public boolean canHarvestBlock(IBlockAccess world, BlockPos pos, EntityPlayer player) {
@@ -157,8 +193,14 @@ public class BlockPipe extends Block {
 
 	@Override
 	public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
+		TileEntityPipe te = null;
+		if (worldIn.getTileEntity(pos) instanceof TileEntityPipe) {
+			te = (TileEntityPipe)worldIn.getTileEntity(pos);
+		}
 		for (EnumFacing e : EnumFacing.VALUES) {
-			state = state.withProperty(propertyMap.get(e), canConnectTo(pos.offset(e), e.getOpposite(), worldIn));
+			boolean connect = this.canConnectTo(pos.offset(e), e.getOpposite(), worldIn);
+			if (te != null) connect = (connect && !te.disableConnection.getOrDefault(e, false));
+			state = state.withProperty(propertyMap.get(e), connect);
 		}
 		return state;
 	}
