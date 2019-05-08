@@ -30,6 +30,7 @@ public class TileEntityExtractionPipe extends TileEntityRoutingPipe {
 		if (this.lastExtract+this.getExtractTime() <= this.world.getTotalWorldTime()) {
 			this.lastExtract = this.world.getTotalWorldTime();
 			for (EnumFacing f : EnumFacing.VALUES) {
+				if (this.disableConnection.getOrDefault(f, false)) continue;
 				TileEntity te = this.world.getTileEntity(this.pos.offset(f));
 				if (te == null || te instanceof TileEntityPipe) continue;
 				if (!te.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, f.getOpposite())) continue;

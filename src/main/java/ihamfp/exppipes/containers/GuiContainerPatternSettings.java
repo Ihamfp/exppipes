@@ -68,7 +68,7 @@ public class GuiContainerPatternSettings extends GuiContainerDecorated {
 			if (ingredients.get(i) == null) continue;
 			ItemStack stackToDraw = ingredients.get(i).reference;
 			this.itemRender.renderItemIntoGUI(stackToDraw, ix, iy);
-			this.itemRender.renderItemOverlayIntoGUI(fontRenderer, stackToDraw, ix, iy, Integer.toString(stackToDraw.getCount()));
+			this.itemRender.renderItemOverlayIntoGUI(fontRenderer, stackToDraw, ix, iy, (stackToDraw.getCount()>1)?Integer.toString(stackToDraw.getCount()):"");
 			if (mouseX-guiLeft >= ix && mouseX-guiLeft <= ix+16 && mouseY-guiTop >= iy && mouseY-guiTop <= iy+16) {
 				hoverText = this.getItemToolTip(stackToDraw);//new ArrayList<String>();
 				//hoverText.add(stackToDraw.getDisplayName());
@@ -83,7 +83,7 @@ public class GuiContainerPatternSettings extends GuiContainerDecorated {
 			int iy = 17+(i/3)*18;
 			ItemStack stackToDraw = results.get(i);
 			this.itemRender.renderItemAndEffectIntoGUI(stackToDraw, ix, iy);
-			this.itemRender.renderItemOverlayIntoGUI(fontRenderer, stackToDraw, ix, iy, Integer.toString(stackToDraw.getCount()));
+			this.itemRender.renderItemOverlayIntoGUI(fontRenderer, stackToDraw, ix, iy, (stackToDraw.getCount()>1)?Integer.toString(stackToDraw.getCount()):"");
 			if (mouseX-guiLeft >= ix && mouseX-guiLeft <= ix+16 && mouseY-guiTop >= iy && mouseY-guiTop <= iy+16) {
 				drawRect(ix, iy, ix + 16, iy + 16, -2130706433);
 				if (!stackToDraw.isEmpty()) {

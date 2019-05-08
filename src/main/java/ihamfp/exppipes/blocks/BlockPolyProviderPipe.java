@@ -25,9 +25,8 @@ public class BlockPolyProviderPipe extends BlockRoutingPipe {
 
 	@Override
 	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		if (worldIn.isRemote) return false;
 		ItemStack heldStack = playerIn.getHeldItem(hand);
-		if (heldStack.getItem() instanceof ItemUpgrade) {
+		if (!worldIn.isRemote && heldStack.getItem() instanceof ItemUpgrade) {
 			TileEntity te = worldIn.getTileEntity(pos);
 			if (te != null && te instanceof TileEntityRoutingPipe) {
 				IItemHandler upgrades = ((TileEntityRoutingPipe)te).upgradesItemHandler;
@@ -43,6 +42,6 @@ public class BlockPolyProviderPipe extends BlockRoutingPipe {
 				}
 			}
 		}
-		return false;
+		return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
 	}
 }

@@ -187,7 +187,7 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 		}
 		
 		this.itemHandler.storedItems.removeAll(toRemove); // only keep non-empty stacks
-
+		
 		this.markDirty();
 	}
 	

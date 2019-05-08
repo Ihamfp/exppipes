@@ -32,11 +32,17 @@ public class TileEntityCraftingPipe extends TileEntityRoutingPipe {
 						for (ItemStack result : results) {
 							if (result.isEmpty()) continue;
 							if (req.filter.doesMatch(result)) { // start crafting !
-								req.processingCount.addAndGet(result.getCount());
 								List<FilterConfig> ingredients = ItemCraftingPattern.getPatternIngredients(this.patternStorage.getStackInSlot(i));
+								boolean canProcess = true;
 								for (FilterConfig ingFilter : ingredients) {
-									if (ingFilter == null) continue;
-									this.network.request(new BlockDimPos(this), ingFilter, ingFilter.reference.getCount());
+									if (ingFilter != null && !this.canInsert(ingFilter.reference)) canProcess = false;
+								}
+								if (canProcess) {
+									req.processingCount.addAndGet(result.getCount());
+									for (FilterConfig ingFilter : ingredients) {
+										if (ingFilter == null) continue;
+										this.network.request(new BlockDimPos(this), ingFilter, ingFilter.reference.getCount());
+									}
 								}
 								break; // only request 1
 							}

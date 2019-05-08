@@ -11,7 +11,7 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
 
-version = "0.2.3"
+version = "0.2.4"
 group = "ihamfp.exppipes" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "exppipes"
 
@@ -24,6 +24,7 @@ minecraft {
     version = "1.12.2-14.23.5.2768"
     runDir = "run"
     replace "@VERSION@", "${version}"
+    replace "%VERSION%", project.version
     
     // the mappings can be changed at any time, and must be in the following format.
     // snapshot_YYYYMMDD   snapshot are built nightly.
@@ -48,18 +49,29 @@ repositories {
 		url = "http://maven.amadornes.com/"
 	}
 	maven {
+		name = "Progwm16 maven (JEI)"
+		url = "https://dvs1.progwml6.com/files/maven/"
+	}
+	//maven {
+	//	name = "ModMaven (fallback)"
+	//	url = "https://modmaven.k-4u.nl"
+	//}
+	maven {
 		name = "CurseForge"
 		url = "https://minecraft.curseforge.com/api/maven/"
 	}
 }
 
 dependencies {
-	deobfCompile "li.cil.oc:OpenComputers:MC1.12.2-1.7.+"
-	deobfCompile "thaumcraft:thaumcraft:1.12.2:6.1.BETA26"
-	deobfCompile "gregtechce:gregtech:1.12.2:1.7.0.387"
-	deobfCompile "nuclearcraft-mod:NuclearCraft:2.15:1.12.2"
-	deobfCompile "net.sengir.forestry:forestry_1.12.2:5.8.2.387"
-	deobfCompile "MCMultiPart2:MCMultiPart:2.5.3"
+	deobfCompile "li.cil.oc:OpenComputers:MC${mc_version}-${oc_version}"
+	deobfCompile "thaumcraft:thaumcraft:${mc_version}:${tc_version}"
+	deobfCompile "gregtechce:gregtech:${mc_version}:${gt_version}"
+	deobfCompile "nuclearcraft-mod:NuclearCraft:${nc_version}:${mc_version}"
+	deobfCompile "net.sengir.forestry:forestry_${mc_version}:${fo_version}"
+	deobfCompile "MCMultiPart2:MCMultiPart:${mp_version}"
+	
+	deobfProvided "mezz.jei:jei_${mc_version}:${jei_version}:api"
+	runtime "mezz.jei:jei_${mc_version}:${jei_version}"
 }
 
 processResources {

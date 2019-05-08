@@ -69,6 +69,7 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		Map<ItemStack,TileEntity> invs = new HashMap<ItemStack,TileEntity>(); // ItemStacks are all different objects (hopefully), but a TileEntity can hold many ItemStacks
 		
 		for (EnumFacing e : EnumFacing.VALUES) {
+			if (this.disableConnection.getOrDefault(e, false)) continue;
 			TileEntity te = this.world.getTileEntity(this.pos.offset(e));
 			if (te == null) continue;
 			if (!te.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, e.getOpposite())) continue;
@@ -104,6 +105,7 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		List<BlockPos> checkedPipes = new ArrayList<BlockPos>();
 		checkedPipes.add(this.pos);
 		for (EnumFacing e : EnumFacing.VALUES) { // check this pipe's faces
+			if (this.disableConnection.getOrDefault(e, false)) continue;
 			int jumpCount = 0;
 			BlockPos currentPos = this.pos.offset(e);
 			
@@ -202,6 +204,7 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 			if (i.destinationPos != null && i.destinationPos.isHere(this) && i.to == null) {
 				// check all sides for non-pipes inventories
 				for (EnumFacing e : EnumFacing.VALUES) {
+					if (this.disableConnection.getOrDefault(e, false)) continue;
 					BlockPos checking = this.pos.offset(e);
 					if (this.world.getTileEntity(checking) == null) continue; // nothing here
 					if (this.world.getTileEntity(checking) instanceof TileEntityPipe) continue; // pipe here

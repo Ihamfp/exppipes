@@ -138,37 +138,46 @@ public class BlockPipe extends Block {
 		super.breakBlock(worldIn, pos, state);
 	}
 	
+	public int getGuiID() {
+		return -1;
+	}
+	
 	@Override
 	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		if (playerIn.isSneaking() && hand == EnumHand.MAIN_HAND && worldIn.getTileEntity(pos) instanceof TileEntityPipe) {
-			// get face to connect/disconnect
-			EnumFacing f = null;
-			if (Utils.bbContainsEq(bbCENTER, hitX, hitY, hitZ)) { // clicked on center/unconnected side
-				f = facing;
-			} else {
-				for (EnumFacing g : EnumFacing.VALUES) {
-					if (Utils.bbContainsEq(bbMap.get(g), hitX, hitY, hitZ)) {
-						f = g;
+		if (hand == EnumHand.MAIN_HAND && worldIn.getTileEntity(pos) instanceof TileEntityPipe) {
+			if (playerIn.isSneaking()) {
+				// get face to connect/disconnect
+				EnumFacing f = null;
+				if (Utils.bbContainsEq(bbCENTER, hitX, hitY, hitZ)) { // clicked on center/unconnected side
+					f = facing;
+				} else {
+					for (EnumFacing g : EnumFacing.VALUES) {
+						if (Utils.bbContainsEq(bbMap.get(g), hitX, hitY, hitZ)) {
+							f = g;
+						}
 					}
 				}
-			}
-			// connect/disconnect
-			if (f == null) return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
-			TileEntityPipe te = (TileEntityPipe) worldIn.getTileEntity(pos);
-			if (worldIn.getTileEntity(pos.offset(f)) instanceof TileEntityPipe && !te.disableConnection.getOrDefault(f, false)) {
-				TileEntityPipe other = (TileEntityPipe) worldIn.getTileEntity(pos.offset(f));
-				if (other.disableConnection.getOrDefault(f.getOpposite(), false)) { // reconnect to the other pipe
-					other.disableConnection.put(f.getOpposite(), false);
-					worldIn.notifyBlockUpdate(other.getPos(), worldIn.getBlockState(other.getPos()), worldIn.getBlockState(other.getPos()), 1);
-					return true;
+				// connect/disconnect
+				if (f == null) return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
+				TileEntityPipe te = (TileEntityPipe) worldIn.getTileEntity(pos);
+				if (worldIn.getTileEntity(pos.offset(f)) instanceof TileEntityPipe && !te.disableConnection.getOrDefault(f, false)) {
+					TileEntityPipe other = (TileEntityPipe) worldIn.getTileEntity(pos.offset(f));
+					if (other.disableConnection.getOrDefault(f.getOpposite(), false)) { // reconnect to the other pipe
+						other.disableConnection.put(f.getOpposite(), false);
+						worldIn.notifyBlockUpdate(other.getPos(), worldIn.getBlockState(other.getPos()), worldIn.getBlockState(other.getPos()).withProperty(propertyMap.get(f.getOpposite()), true), 3);
+						return true;
+					}
 				}
+				if (this.canConnectTo(pos.offset(f), f.getOpposite(), worldIn)) {
+					te.disableConnection.put(f, !te.disableConnection.getOrDefault(f, false));
+					worldIn.notifyBlockUpdate(pos, state, state.withProperty(propertyMap.get(f), !te.disableConnection.get(f)), 3);
+					//ExppipesMod.logger.info("Face: " + f.getName() + " => " + te.disableConnection.getOrDefault(f,false).toString());
+				}
+				return true;
+			} else if (this.getGuiID() > 0) {
+				playerIn.openGui(ExppipesMod.instance, this.getGuiID(), worldIn, pos.getX(), pos.getY(), pos.getZ());
+				return true;
 			}
-			if (this.canConnectTo(pos.offset(f), f.getOpposite(), worldIn)) {
-				te.disableConnection.put(f, !te.disableConnection.getOrDefault(f, false));
-				worldIn.notifyBlockUpdate(pos, state, state.withProperty(propertyMap.get(f), !te.disableConnection.get(f)), 1);
-				ExppipesMod.logger.info("Face: " + f.getName() + " => " + te.disableConnection.getOrDefault(f,false).toString());
-			}
-			return true;
 		}
 		
 		return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);

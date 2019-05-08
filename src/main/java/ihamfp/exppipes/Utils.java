@@ -3,9 +3,11 @@ package ihamfp.exppipes;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraftforge.oredict.OreDictionary;
 
 public class Utils {
 	public static EnumFacing faceFromPos(BlockPos from, BlockPos to) {
@@ -56,5 +58,21 @@ public class Utils {
 		} else {
 			return false;
 		}
+	}
+	
+	public static String commonOredict(List<ItemStack> stacks) {
+		if (stacks.size() == 0) return null;
+		List<Integer> commonOres = new ArrayList<Integer>();
+		for (int i : OreDictionary.getOreIDs(stacks.get(0))) commonOres.add(i);
+		if (commonOres.size() == 0) return null;
+		for (int i=1; i<stacks.size(); i++) {
+			ItemStack stack = stacks.get(i);
+			List<Integer> stackOres = new ArrayList<Integer>();
+			for (int o : OreDictionary.getOreIDs(stack)) stackOres.add(o);
+			commonOres.removeIf(o -> !stackOres.contains(o));
+			if (commonOres.size() == 0) return null;
+		}
+		if (commonOres.size() == 0) return null;
+		return OreDictionary.getOreName(commonOres.get(0));
 	}
 }

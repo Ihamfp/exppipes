@@ -17,6 +17,7 @@ import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumHand;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants.NBT;
+import net.minecraftforge.oredict.OreDictionary;
 
 public class ItemCraftingPattern extends Item {
 	public ItemCraftingPattern(String id) {
@@ -52,7 +53,7 @@ public class ItemCraftingPattern extends Item {
 				tooltip.add("From: ");
 				for (FilterConfig ingredient : ingredients) {
 					if (ingredient == null) continue;
-					tooltip.add(" - " + ingredient.reference.getDisplayName() + " x" + Integer.toString(ingredient.reference.getCount()));
+					tooltip.add(" - " + ((ingredient.filterId==3)?OreDictionary.getOreName(OreDictionary.getOreIDs(ingredient.reference)[0]):ingredient.reference.getDisplayName()) + " x" + Integer.toString(ingredient.reference.getCount()));
 				}
 			}
 		}

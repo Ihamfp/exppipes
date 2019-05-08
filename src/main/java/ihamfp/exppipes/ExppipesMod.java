@@ -15,7 +15,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 public class ExppipesMod {
 	public static final String MODID = "exppipes";
     public static final String NAME = "Exponentialistics pipes";
-    public static final String VERSION = "@VERSION@";
+    public static final String VERSION = "%VERSION%";
     
     @Mod.Instance(MODID)
     public static ExppipesMod instance;

@@ -3,8 +3,8 @@
     "textures": {
         "down": "blocks/brick",
         "up": "blocks/brick",
-        "north": "blocks/bedrock",
-        "south": "blocks/brick",
+        "north": "blocks/brick",
+        "south": "blocks/bedrock",
         "west": "blocks/brick",
         "east": "blocks/brick"
     }
