@@ -13,6 +13,19 @@ import net.minecraftforge.items.ItemStackHandler;
 public class TileEntityCraftingPipe extends TileEntityRoutingPipe {
 	public ItemStackHandler patternStorage = new ItemStackHandler(9) {
 		@Override
+		public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+			if (!(stack.getItem() instanceof ItemCraftingPattern)) {
+				return stack; // do not insert if not pattern
+			}
+			return super.insertItem(slot, stack, simulate);
+		}
+		
+		@Override
+		public boolean isItemValid(int slot, ItemStack stack) {
+			return (stack.getItem() instanceof ItemCraftingPattern);
+		}
+		
+		@Override
 		protected void onContentsChanged(int slot) {
 			TileEntityCraftingPipe.this.markDirty();
 		}

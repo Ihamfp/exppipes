@@ -66,17 +66,21 @@ public class BlockStackDisplay extends Block {
 		if (EnumFacing.Plane.HORIZONTAL.test(facing)) {
 			return this.getDefaultState().withProperty(yaw, facing.getOpposite());
 		} else {
-			return this.getDefaultState().withProperty(pitch, facing.getOpposite());
+			return this.getDefaultState().withProperty(pitch, facing).withProperty(yaw, placer.getHorizontalFacing());
 		}
 	}
 	
 	@Override
 	public IBlockState getStateFromMeta(int meta) {
-		return this.getDefaultState().withProperty(yaw, EnumFacing.HORIZONTALS[meta&3]);
+		return this.getDefaultState().withProperty(yaw, EnumFacing.HORIZONTALS[meta&3]).withProperty(pitch, Utils.pitches.get(((meta>>2)&3)%3));
 	}
 	
 	@Override
 	public int getMetaFromState(IBlockState state) {
-		return state.getValue(yaw).getHorizontalIndex();
+		return state.getValue(yaw).getHorizontalIndex() | Utils.pitches.indexOf(state.getValue(pitch))<<2;
+	}
+	
+	public EnumFacing getFrontFace(IBlockState state) {
+		return (state.getValue(pitch)==EnumFacing.NORTH?state.getValue(yaw):state.getValue(pitch));
 	}
 }

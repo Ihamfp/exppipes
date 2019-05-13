@@ -13,6 +13,7 @@ import ihamfp.exppipes.tileentities.TileEntityCraftingPipe;
 import ihamfp.exppipes.tileentities.TileEntityExtractionPipe;
 import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
+import ihamfp.exppipes.tileentities.TileEntityStockKeeperPipe;
 import ihamfp.exppipes.tileentities.TileEntitySupplierPipe;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
@@ -44,6 +45,8 @@ public class GUIHandler implements IGuiHandler {
 				return new ContainerCraftingPipe(player.inventory, (TileEntityCraftingPipe)te);
 			case 5: // extraction pipe
 				return new ContainerPipeConfig(player.inventory, (TileEntityRoutingPipe)te, ((TileEntityExtractionPipe)te).extractConfig);
+			case 6: // stock keeper pipe
+				return new ContainerPipeConfig(player.inventory, (TileEntityRoutingPipe) te, ((TileEntityStockKeeperPipe)te).stockConfig);
 			default:
 				return null;
 			}
@@ -73,6 +76,8 @@ public class GUIHandler implements IGuiHandler {
 				return new GuiContainerCraftingPipe(new ContainerCraftingPipe(player.inventory, (TileEntityCraftingPipe)te));
 			case 5:
 				return new GuiContainerPipeConfig(new ContainerPipeConfig(player.inventory, (TileEntityRoutingPipe)te, ((TileEntityExtractionPipe)te).extractConfig), ((TileEntityExtractionPipe)te), FilterFunction.FILTER_EXTRACT);
+			case 6:
+				return new GuiContainerPipeConfig(new ContainerPipeConfig(player.inventory, (TileEntityRoutingPipe) te, ((TileEntityStockKeeperPipe)te).stockConfig), ((TileEntityStockKeeperPipe)te), FilterFunction.FILTER_STOCK);
 			default:
 				return null;	
 			}

@@ -10,6 +10,10 @@ tile.exppipes:blockcraftingpipe.name=Crafting Pipe
 tile.exppipes:blockextractionpipe.name=Extraction Pipe
 tile.exppipes:blockpolyproviderpipe.name=Polymorphic Provider Pipe
 tile.exppipes:blockcountingpipe.name=Counting Pipe
+tile.exppipes:blockstockkeeperpipe.name=Stock Keeper Pipe
+
+tile.exppipes:blockstackdisplay.name=Stack Display
+tile.exppipes:blockbufferstackdisplay.name=Buffered Stack Display
 
 item.exppipes:craftingpattern.name=Crafting Pattern
 item.exppipes:pipeupgrade.name=Pipe Upgrade

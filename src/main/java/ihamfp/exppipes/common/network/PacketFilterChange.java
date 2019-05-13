@@ -3,6 +3,7 @@ package ihamfp.exppipes.common.network;
 import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.tileentities.TileEntityExtractionPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
+import ihamfp.exppipes.tileentities.TileEntityStockKeeperPipe;
 import ihamfp.exppipes.tileentities.TileEntitySupplierPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import io.netty.buffer.ByteBuf;
@@ -19,7 +20,8 @@ public class PacketFilterChange implements IMessage {
 	public enum FilterFunction {
 		FILTER_SINK,
 		FILTER_SUPPLY,
-		FILTER_EXTRACT;
+		FILTER_EXTRACT,
+		FILTER_STOCK;
 	}
 	
 	BlockDimPos pos;
@@ -111,6 +113,17 @@ public class PacketFilterChange implements IMessage {
 						((TileEntityExtractionPipe)terp).extractConfig.filters.add(filter);
 					} else {
 						filter = ((TileEntityExtractionPipe)terp).extractConfig.filters.get(message.filterId);
+					}
+					break;
+				case FILTER_STOCK:
+					if (!(terp instanceof TileEntityStockKeeperPipe)) return;
+					if (message.reference.isEmpty() && message.filterId < ((TileEntityStockKeeperPipe)terp).stockConfig.filters.size()) {
+						((TileEntityStockKeeperPipe)terp).stockConfig.filters.remove(message.filterId);
+					} else if (((TileEntityStockKeeperPipe)terp).stockConfig.filters.size() <= message.filterId) {
+						filter = new FilterConfig(new ItemStack(Blocks.BEDROCK, 1), 0, false);
+						((TileEntityStockKeeperPipe)terp).stockConfig.filters.add(filter);
+					} else {
+						filter = ((TileEntityStockKeeperPipe)terp).stockConfig.filters.get(message.filterId);
 					}
 					break;
 				default:

@@ -13,6 +13,7 @@ import ihamfp.exppipes.common.network.PacketSetDefaultRoute;
 import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.tileentities.TileEntityExtractionPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
+import ihamfp.exppipes.tileentities.TileEntityStockKeeperPipe;
 import ihamfp.exppipes.tileentities.TileEntitySupplierPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
@@ -45,6 +46,9 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 		} else if (te instanceof TileEntityExtractionPipe && filterFunction == FilterFunction.FILTER_EXTRACT) {
 			this.conf = ((TileEntityExtractionPipe)te).extractConfig;
 			this.confTitle = "Extract config";
+		} else if (te instanceof TileEntityStockKeeperPipe && filterFunction == FilterFunction.FILTER_STOCK) {
+			this.conf = ((TileEntityStockKeeperPipe)te).stockConfig;
+			this.confTitle = "Stock config";
 		}
 		this.filterFunction = filterFunction;
 		if (conf == null) {

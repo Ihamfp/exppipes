@@ -40,9 +40,9 @@ public class Utils {
 	public static float getPitchAngle(EnumFacing f) {
 		switch (f) {
 		case UP:
-			return -90.0f;
-		case DOWN:
 			return 90.0f;
+		case DOWN:
+			return -90.0f;
 		default:
 			return 0.0f;	
 		}

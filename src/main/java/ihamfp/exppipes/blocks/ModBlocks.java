@@ -26,8 +26,10 @@ public class ModBlocks {
 	public static BlockExtractionPipe extractionPipe = new BlockExtractionPipe("blockExtractionPipe");
 	public static BlockPolyProviderPipe polyproviderPipe = new BlockPolyProviderPipe("blockPolyProviderPipe");
 	public static BlockCountingPipe countingPipe = new BlockCountingPipe("blockCountingPipe");
+	public static BlockStockKeeperPipe stockKeeperPipe = new BlockStockKeeperPipe("blockStockKeeperPipe");
 	
 	public static BlockStackDisplay stackDisplay = new BlockStackDisplay("blockStackDisplay");
+	public static BlockBufferStackDisplay bufferStackDisplay = new BlockBufferStackDisplay("blockBufferStackDisplay");
 	
 	public static ArrayList<Block> modBlocks = new ArrayList<Block>();
 	public static ArrayList<Item> modItemBlocks = new ArrayList<Item>();
@@ -43,7 +45,9 @@ public class ModBlocks {
 		modBlocks.add(extractionPipe);
 		modBlocks.add(polyproviderPipe);
 		modBlocks.add(countingPipe);
+		modBlocks.add(stockKeeperPipe);
 		modBlocks.add(stackDisplay);
+		modBlocks.add(bufferStackDisplay);
 		
 		MinecraftForge.EVENT_BUS.register(new ModBlocks());
 	}

@@ -38,13 +38,16 @@ public class TESRStackDisplay extends TileEntitySpecialRenderer<TileEntityStackD
 			
 			GlStateManager.rotate(180.0f, 0.0f, 1.0f, 0.0f);
 			GlStateManager.rotate(180.0f, 0.0f, 0.0f, 1.0f);
-			GlStateManager.translate(0.0, 0.1/itemScale, -2.0);
+			GlStateManager.scale(1/itemScale, 1/itemScale, 1.0f);
 			
 			FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
 			int strw = fr.getStringWidth(te.displayedText);
-			GlStateManager.scale((textScale/itemScale)/strw, (textScale/itemScale)/strw, 1.0);
-			GlStateManager.translate(-strw/2, 0.0, 0.0);
-			fr.drawString(te.displayedText, 0, 0, 0x1f1f1f);
+
+			GlStateManager.translate(0.0, textScale/2, 0.0);
+			
+			GlStateManager.scale(textScale/strw, textScale/strw, 1.0);
+			GlStateManager.translate(-strw/2, -fr.FONT_HEIGHT, -2.0);
+			fr.drawString(te.displayedText, 0, 0, 0x202020);
 			GlStateManager.disableAlpha();
 			
 			GlStateManager.popMatrix();
