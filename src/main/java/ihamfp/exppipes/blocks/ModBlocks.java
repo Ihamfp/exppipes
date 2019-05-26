@@ -31,6 +31,8 @@ public class ModBlocks {
 	public static BlockStackDisplay stackDisplay = new BlockStackDisplay("blockStackDisplay");
 	public static BlockBufferStackDisplay bufferStackDisplay = new BlockBufferStackDisplay("blockBufferStackDisplay");
 	
+	public static BlockRequestStation requestStation = new BlockRequestStation("blockRequestStation");
+	
 	public static ArrayList<Block> modBlocks = new ArrayList<Block>();
 	public static ArrayList<Item> modItemBlocks = new ArrayList<Item>();
 	
@@ -48,6 +50,7 @@ public class ModBlocks {
 		modBlocks.add(stockKeeperPipe);
 		modBlocks.add(stackDisplay);
 		modBlocks.add(bufferStackDisplay);
+		modBlocks.add(requestStation);
 		
 		MinecraftForge.EVENT_BUS.register(new ModBlocks());
 	}

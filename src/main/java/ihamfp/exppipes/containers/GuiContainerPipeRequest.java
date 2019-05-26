@@ -14,7 +14,6 @@ import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 
 public class GuiContainerPipeRequest extends GuiContainerDecorated {
@@ -69,11 +68,6 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 			
 			if (te.invCache.size() <= this.selected + this.page*itemsPerPage) this.selected = -1;
 		}
-	}
-
-	public ItemStack getSelectedItem() {
-		if (selected < 0) return null;
-		return te.invCache.get(selected + page*itemsPerPage).stack;
 	}
 	
 	@Override

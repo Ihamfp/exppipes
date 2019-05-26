@@ -1,11 +1,13 @@
 package ihamfp.exppipes.common.network;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.containers.GuiContainerPipeRequest;
 import ihamfp.exppipes.tileentities.InvCacheEntry;
 import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
+import ihamfp.exppipes.tileentities.TileEntityRequestStation;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -55,16 +57,29 @@ public class PacketInventoryMap implements IMessage {
 				World clientWorld = ExppipesMod.proxy.getClientWorld();
 				if (clientWorld == null) return;
 				TileEntity tile = clientWorld.getTileEntity(message.pos);
-				if (!(tile instanceof TileEntityRequestPipe)) return;
-				TileEntityRequestPipe terp = (TileEntityRequestPipe)tile;
 				
-				if (terp.invCache == null) terp.invCache = new ArrayList<InvCacheEntry>();
-				terp.invCache.add(new InvCacheEntry(message.stack, message.count));
+				List<InvCacheEntry> invCache = null;
+				
+				if (tile instanceof TileEntityRequestPipe) {
+					invCache = ((TileEntityRequestPipe)tile).invCache;
+					if (invCache == null) {
+						invCache = new ArrayList<InvCacheEntry>();
+						((TileEntityRequestPipe)tile).invCache = invCache;
+					}
+				} else if (tile instanceof TileEntityRequestStation) {
+					invCache = ((TileEntityRequestStation)tile).invCache;
+					if (invCache == null) {
+						invCache = new ArrayList<InvCacheEntry>();
+						((TileEntityRequestStation)tile).invCache = invCache;
+					}
+				}
+				
+				invCache.add(new InvCacheEntry(message.stack, message.count));
 				
 				if (GuiContainerPipeRequest.sortID) { // sort by id
-					terp.invCache.sort((a,b) -> Item.getIdFromItem(a.stack.getItem()) - Item.getIdFromItem(b.stack.getItem()));
+					invCache.sort((a,b) -> Item.getIdFromItem(a.stack.getItem()) - Item.getIdFromItem(b.stack.getItem()));
 				} else {
-					terp.invCache.sort((a,b) -> b.count - a.count); // reverse count
+					invCache.sort((a,b) -> b.count - a.count); // reverse count
 				}
 			});
 			return null;

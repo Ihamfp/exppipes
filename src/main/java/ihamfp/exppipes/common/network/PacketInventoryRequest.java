@@ -3,6 +3,8 @@ package ihamfp.exppipes.common.network;
 import java.util.Map;
 
 import ihamfp.exppipes.pipenetwork.BlockDimPos;
+import ihamfp.exppipes.pipenetwork.PipeNetwork;
+import ihamfp.exppipes.tileentities.TileEntityNetworkBlock;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -44,11 +46,16 @@ public class PacketInventoryRequest implements IMessage {
 			serverPlayer.getServerWorld().addScheduledTask(() -> {
 				if (!serverPlayer.getServerWorld().isBlockLoaded(message.pos)) return;
 				TileEntity te = serverPlayer.getServerWorld().getTileEntity(message.pos);
-				if (te == null || !(te instanceof TileEntityRoutingPipe)) return; // I'll be kind and send back even if the TE isn't right
-				TileEntityRoutingPipe terp = (TileEntityRoutingPipe)te; // just a cast, really
-				if (terp.network == null) return;
+				if (te == null) return;
+				PipeNetwork network = null;
+				if (te instanceof TileEntityRoutingPipe) {
+					network = ((TileEntityRoutingPipe) te).network;
+				} else if (te instanceof TileEntityNetworkBlock) {
+					network = ((TileEntityNetworkBlock) te).searchNetwork();
+				}
+				if (network == null) return;
 				
-				Map<ItemStack,Integer> condInv = terp.network.condensedInventory();
+				Map<ItemStack,Integer> condInv = network.condensedInventory();
 				for (ItemStack stack : condInv.keySet()) {
 					PacketInventoryMap toSend = new PacketInventoryMap(stack, condInv.get(stack), message.pos);
 					PacketHandler.INSTANCE.sendTo(toSend, serverPlayer);

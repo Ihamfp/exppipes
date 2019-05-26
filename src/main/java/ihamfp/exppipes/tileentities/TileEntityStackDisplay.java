@@ -13,8 +13,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
-import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -22,7 +20,7 @@ import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 @Optional.Interface(iface = "li.cil.oc.api.network.SimpleComponent", modid = "opencomputers")
-public class TileEntityStackDisplay extends TileEntity implements ITickable, SimpleComponent {
+public class TileEntityStackDisplay extends TileEntityNetworkBlock implements ITickable, SimpleComponent {
 	public ItemStack displayedStack = ItemStack.EMPTY;
 	public String displayedText = "????";
 	public String oldDisplay = "";
@@ -30,16 +28,6 @@ public class TileEntityStackDisplay extends TileEntity implements ITickable, Sim
 	
 	long updateTimer = 0;
 	static int updateTime = 20;
-	
-	PipeNetwork searchNetwork() {
-		for (EnumFacing f : EnumFacing.VALUES) {
-			TileEntity te = this.world.getTileEntity(this.pos.offset(f));
-			if (te != null && te instanceof TileEntityRoutingPipe && ((TileEntityRoutingPipe)te).network != null) {
-				return ((TileEntityRoutingPipe)te).network;
-			}
-		}
-		return null;
-	}
 	
 	@Override
 	public void update() {

@@ -61,7 +61,7 @@ public class TileEntityStockKeeperPipe extends TileEntityRoutingPipe {
 		EnumFacing foundFace = null;
 		for (EnumFacing f : EnumFacing.VALUES) {
 			TileEntity te = this.world.getTileEntity(this.pos.offset(f));
-			if (te != null && te.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, f.getOpposite())) {
+			if (te != null && !(te instanceof TileEntityPipe) && te.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, f.getOpposite())) {
 				ih = te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, f.getOpposite());
 				foundFace = f;
 				break;
