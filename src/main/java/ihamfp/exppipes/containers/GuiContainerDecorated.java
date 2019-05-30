@@ -131,7 +131,7 @@ public abstract class GuiContainerDecorated extends GuiContainer {
 			int stackCount = stacks.get(stackDrawn).count;
 			boolean wasUnicode = fontRenderer.getUnicodeFlag();
 			if (stackCount >= 1000) fontRenderer.setUnicodeFlag(true); // Yes, I know, it's ugly
-			this.itemRender.renderItemOverlayIntoGUI(fontRenderer, stacks.get(stackDrawn).stack, ix, iy, (stackCount==0)?"c":Utils.formatNumber(stackCount));
+			this.itemRender.renderItemOverlayIntoGUI(fontRenderer, stacks.get(stackDrawn).stack, ix, iy, (stackCount==0 && stacks.get(stackDrawn).craftable)?"c":Utils.formatNumber(stackCount));
 			if (mouseX-guiLeft > ix && mouseX-guiLeft < ix+18 && mouseY-guiTop > iy && mouseY-guiTop < iy+18) {
 				toolTipStack = stacks.get(stackDrawn).stack;
 			}

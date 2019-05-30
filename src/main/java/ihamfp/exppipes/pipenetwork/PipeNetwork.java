@@ -260,6 +260,8 @@ public class PipeNetwork {
 					for (ItemStack keyStack : condInv.keySet()) {
 						if (ItemStack.areItemsEqual(patternResult, keyStack) && ItemStack.areItemStackTagsEqual(patternResult, keyStack)) {
 							added = true;
+							if (condInv.get(keyStack) > 0) condInv.put(keyStack, -condInv.get(keyStack)); // negative <=> craftable
+							break;
 						}
 					}
 					if (!added) condInv.put(patternResult, 0);

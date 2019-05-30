@@ -8,13 +8,14 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 @SideOnly(Side.CLIENT)
 public class InvCacheEntry {
 	public ItemStack stack;
-	/**
-	 * 0 means "craftable"
-	 */
+	
 	public int count;
 	
-	public InvCacheEntry(ItemStack stack, int count) {
+	public boolean craftable;
+	
+	public InvCacheEntry(ItemStack stack, int count, boolean craftable) {
 		this.stack = stack;
 		this.count = count;
+		this.craftable = craftable;
 	}
 }

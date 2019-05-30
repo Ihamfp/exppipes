@@ -1,6 +1,5 @@
 package ihamfp.exppipes.tileentities;
 
-import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.pipenetwork.PipeNetwork;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;

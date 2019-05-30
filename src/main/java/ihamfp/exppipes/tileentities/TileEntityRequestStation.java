@@ -3,8 +3,8 @@ package ihamfp.exppipes.tileentities;
 import java.util.List;
 
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
@@ -12,14 +12,26 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 
-public class TileEntityRequestStation extends TileEntityNetworkBlock implements ITickable {
+public class TileEntityRequestStation extends TileEntityNetworkBlock {
 	public List<InvCacheEntry> invCache = null;
-	public ItemStackHandler inventory = new ItemStackHandler(27);
+	public List<InvCacheEntry> invCacheBuffer;
+	
+	public ItemStackHandler inventory = new ItemStackHandler(27) {
+		protected void onContentsChanged(int slot) {
+			TileEntityRequestStation.this.markDirty();
+			super.onContentsChanged(slot);
+		};
+	};
 	// crafting things
-	public ItemStackHandler craftMatrix = new ItemStackHandler(9);
+	public ItemStackHandler craftMatrix = new ItemStackHandler(9) {
+		protected void onContentsChanged(int slot) {
+			TileEntityRequestStation.this.markDirty();
+			super.onContentsChanged(slot);
+		};
+	};
 	public ItemStackHandler craftResult = new ItemStackHandler(1);
 	// return slot
-	public ItemStackHandler returnSlot = new ItemStackHandler(1) {
+	public ItemStackHandler returnSlot = new ItemStackHandler(1) { // shouldn't keep items for more than 1 tick, may not be saved
 		@Override
 		protected void onContentsChanged(int slot) {
 			if (!this.getStackInSlot(slot).isEmpty()) {
@@ -56,9 +68,22 @@ public class TileEntityRequestStation extends TileEntityNetworkBlock implements 
 		}
 		return super.getCapability(capability, facing);
 	}
-
+	
 	@Override
-	public void update() {
-		// TODO manage requests
+	public void readFromNBT(NBTTagCompound compound) {
+		if (compound.hasKey("inventory")) {
+			this.inventory.deserializeNBT(compound.getCompoundTag("inventory"));
+		}
+		if (compound.hasKey("craftMatrix")) {
+			this.craftMatrix.deserializeNBT(compound.getCompoundTag("craftMatrix"));
+		}
+		super.readFromNBT(compound);
+	}
+	
+	@Override
+	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+		compound.setTag("inventory", this.inventory.serializeNBT());
+		compound.setTag("craftMatrix", this.craftMatrix.serializeNBT());
+		return super.writeToNBT(compound);
 	}
 }

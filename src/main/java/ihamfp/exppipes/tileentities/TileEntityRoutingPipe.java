@@ -11,6 +11,7 @@ import ihamfp.exppipes.items.ModItems;
 import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.PipeNetwork;
+import ihamfp.exppipes.pipenetwork.Request;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import ihamfp.exppipes.tileentities.pipeconfig.Filters;
@@ -21,12 +22,14 @@ import li.cil.oc.api.network.SimpleComponent;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.items.CapabilityItemHandler;
@@ -44,6 +47,8 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 	
 	// Used to store a list of nodes, providers, etc. and provide some network-wide functions
 	public PipeNetwork network = null;
+	
+	public List<Request> requests = new ArrayList<Request>();
 
 	public boolean isDefaultRoute = false;
 	
@@ -197,6 +202,29 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		}
 		
 		this.itemHandler.tick(this.world.getTotalWorldTime());
+		// remove all completed requests
+		List<Request> rRemove = new ArrayList<Request>();
+		for (ItemDirection itemDir : itemHandler.storedItems) {
+			for (Request r : this.requests) {
+				if (rRemove.contains(r)) break;
+				if (itemDir.destinationPos != null && itemDir.destinationPos.isHere(this) && (this.world.getTotalWorldTime()-itemDir.insertTime)>=Configs.travelTime && r.filter.doesMatch(itemDir.itemStack)) {
+					r.processingCount.addAndGet(-itemDir.itemStack.getCount());
+					if (r.processingCount.get() < 0) r.processingCount.set(0);
+					r.processedCount += itemDir.itemStack.getCount();
+					if (r.processedCount >= r.requestedCount) {
+						rRemove.add(r);
+					}
+					break;
+				}
+				if (this.network != null && !this.network.requests.contains(r)) {
+					this.network.requests.add(r);
+				}	
+			}
+		}
+		this.requests.removeAll(rRemove);
+		if (this.network != null) {
+			this.network.requests.removeAll(rRemove);
+		}
 		
 		for (ItemDirection i : this.itemHandler.storedItems) {
 			if (i.itemStack == null) continue;
@@ -271,6 +299,12 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		this.sinkConfig.deserializeNBT(compound.getCompoundTag("config"));
 		this.upgradesItemHandler.deserializeNBT(compound.getCompoundTag("upgrades"));
 		this.isDefaultRoute = compound.getBoolean("isdefaultroute");
+		if (this.network != null) this.network.requests.removeAll(this.requests);
+		NBTTagList requests = compound.getTagList("requests", NBT.TAG_COMPOUND);
+		for (int i=0; i<requests.tagCount();i++) {
+			this.requests.add(new Request((NBTTagCompound) requests.get(i)));
+		}
+		if (this.network != null) this.network.requests.addAll(this.requests);
 		super.readFromNBT(compound);
 	}
 
@@ -279,6 +313,11 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		compound.setTag("config", this.sinkConfig.serializeNBT());
 		compound.setTag("upgrades", this.upgradesItemHandler.serializeNBT());
 		compound.setBoolean("isdefaultroute", this.isDefaultRoute);
+		NBTTagList requests = new NBTTagList();
+		for (Request req : this.requests) {
+			requests.appendTag(req.serializeNBT());
+		}
+		compound.setTag("requests", requests);
 		return super.writeToNBT(compound);
 	}
 	

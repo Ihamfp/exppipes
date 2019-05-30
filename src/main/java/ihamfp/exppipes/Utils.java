@@ -3,6 +3,8 @@ package ihamfp.exppipes;
 import java.util.ArrayList;
 import java.util.List;
 
+import ihamfp.exppipes.tileentities.InvCacheEntry;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -74,5 +76,19 @@ public class Utils {
 		}
 		if (commonOres.size() == 0) return null;
 		return OreDictionary.getOreName(commonOres.get(0));
+	}
+	
+	/*
+	 * true: sort by ID
+	 * false: sort by count
+	 */
+	public static boolean sortID = false;
+	
+	public static void invCacheSort(List<InvCacheEntry> l) {
+		if (sortID) { // sort by id
+			l.sort((a,b) -> Item.getIdFromItem(a.stack.getItem())-Item.getIdFromItem(b.stack.getItem()));
+		} else {
+			l.sort((a,b) -> b.count - a.count); // reverse count
+		}
 	}
 }

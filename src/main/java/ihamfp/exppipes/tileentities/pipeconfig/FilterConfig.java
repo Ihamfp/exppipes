@@ -60,6 +60,7 @@ public class FilterConfig implements INBTSerializable<NBTTagCompound> {
 		NBTTagCompound tag = new NBTTagCompound();
 		this.reference.writeToNBT(tag);
 		//tag.setInteger("filterType", this.filterId); // integer filter *storage* is deprecated, will be remove in 0.3.0
+		if (filterId < 0 || filterId >= Filters.filters.size()) filterId = 0;
 		tag.setString("filterTypeS", Filters.filters.get(filterId).getShortName());
 		tag.setInteger("priority", this.priority);
 		tag.setBoolean("blacklist", this.blacklist);

@@ -5,10 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import ihamfp.exppipes.common.Configs;
 import ihamfp.exppipes.pipenetwork.BlockDimPos;
-import ihamfp.exppipes.pipenetwork.ItemDirection;
-import ihamfp.exppipes.pipenetwork.Request;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import ihamfp.exppipes.tileentities.pipeconfig.Filters;
 import li.cil.oc.api.machine.Arguments;
@@ -16,66 +13,12 @@ import li.cil.oc.api.machine.Callback;
 import li.cil.oc.api.machine.Context;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraftforge.common.util.Constants.NBT;
 import net.minecraftforge.fml.common.Optional;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
 public class TileEntityRequestPipe extends TileEntityRoutingPipe {
-	public List<InvCacheEntry> invCache = null; // Filled when a packet is received. Used for the request pipe GUI
-	
-	public List<Request> requests = new ArrayList<Request>();
-	
-	@Override
-	public void serverUpdate() {
-		// remove all completed requests
-		this.itemHandler.tick(this.world.getTotalWorldTime());
-		List<Request> rRemove = new ArrayList<Request>();
-		for (ItemDirection itemDir : itemHandler.storedItems) {
-			for (Request r : this.requests) {
-				if (rRemove.contains(r)) break;
-				if (itemDir.destinationPos != null && itemDir.destinationPos.isHere(this) && (this.world.getTotalWorldTime()-itemDir.insertTime)>=Configs.travelTime && r.filter.doesMatch(itemDir.itemStack)) {
-					r.processingCount.addAndGet(-itemDir.itemStack.getCount());
-					if (r.processingCount.get() < 0) r.processingCount.set(0);
-					r.processedCount += itemDir.itemStack.getCount();
-					if (r.processedCount >= r.requestedCount) {
-						rRemove.add(r);
-					}
-					break;
-				}
-				if (this.network != null && !this.network.requests.contains(r)) {
-					this.network.requests.add(r);
-				}	
-			}
-		}
-		this.requests.removeAll(rRemove);
-		if (this.network != null) {
-			this.network.requests.removeAll(rRemove);
-		}
-
-		super.serverUpdate();
-	}
-	
-	@Override
-	public void readFromNBT(NBTTagCompound compound) {
-		if (this.network != null) this.network.requests.removeAll(this.requests);
-		NBTTagList requests = compound.getTagList("requests", NBT.TAG_COMPOUND);
-		for (int i=0; i<requests.tagCount();i++) {
-			this.requests.add(new Request((NBTTagCompound) requests.get(i)));
-		}
-		if (this.network != null) this.network.requests.addAll(this.requests);
-		super.readFromNBT(compound);
-	}
-
-	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-		NBTTagList requests = new NBTTagList();
-		for (Request req : this.requests) {
-			requests.appendTag(req.serializeNBT());
-		}
-		compound.setTag("requests", requests);
-		return super.writeToNBT(compound);
-	}
+	public List<InvCacheEntry> invCache = null; // Used for the request pipe GUI
+	public List<InvCacheEntry> invCacheBuffer = null; // Filled when a packet is received.
 	
 	// opencomputers integration
 	

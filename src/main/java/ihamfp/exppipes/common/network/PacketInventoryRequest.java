@@ -56,8 +56,9 @@ public class PacketInventoryRequest implements IMessage {
 				if (network == null) return;
 				
 				Map<ItemStack,Integer> condInv = network.condensedInventory();
+				int entries = condInv.size();
 				for (ItemStack stack : condInv.keySet()) {
-					PacketInventoryMap toSend = new PacketInventoryMap(stack, condInv.get(stack), message.pos);
+					PacketInventoryMap toSend = new PacketInventoryMap(stack, condInv.get(stack), message.pos, entries);
 					PacketHandler.INSTANCE.sendTo(toSend, serverPlayer);
 				}
 			});

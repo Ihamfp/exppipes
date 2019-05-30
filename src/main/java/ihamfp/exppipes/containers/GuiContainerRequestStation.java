@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import ihamfp.exppipes.ExppipesMod;
+import ihamfp.exppipes.Utils;
 import ihamfp.exppipes.common.network.PacketHandler;
 import ihamfp.exppipes.common.network.PacketInventoryRequest;
 import ihamfp.exppipes.common.network.PacketItemRequest;
@@ -14,7 +15,6 @@ import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.inventory.Container;
-import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.ResourceLocation;
@@ -87,15 +87,16 @@ public class GuiContainerRequestStation extends GuiContainerDecorated {
 			}
 			PacketHandler.INSTANCE.sendToServer(new PacketItemRequest(new BlockDimPos(terp), new FilterConfig(entry.stack, 2, false), this.reqCount));
 			
-			if (entry.count != 0) { // if not a craftable thing
-				entry.count--; // do some client-side prediction
-				if (entry.count == 0) {
-					this.te.invCache.remove(entry);
+			if (entry.count != 0) {
+				entry.count -= this.reqCount; // do some client-side prediction
+				if (entry.count <= 0) {
+					if (entry.craftable) entry.count = 0;
+					else this.te.invCache.remove(entry);
 				}
 			}
 		} else if (button.id == 1) { // refresh
-			this.selected = -1;
-			this.te.invCache.clear();
+			//this.selected = -1;
+			//this.te.invCache.clear();
 			PacketHandler.INSTANCE.sendToServer(new PacketInventoryRequest(new BlockDimPos(te)));
 		} else if (button.id == 2) { // page >
 			this.page++;
@@ -106,12 +107,8 @@ public class GuiContainerRequestStation extends GuiContainerDecorated {
 			this.page--;
 			if (this.page < 0) this.page = 0;
 		} else if (button.id == 4) { // sort
-			GuiContainerPipeRequest.sortID = !GuiContainerPipeRequest.sortID; // TODO clean this, move to Utils or whatever
-			if (GuiContainerPipeRequest.sortID) { // sort by id
-				te.invCache.sort((a,b) -> Item.getIdFromItem(a.stack.getItem()) - Item.getIdFromItem(b.stack.getItem()));
-			} else {
-				te.invCache.sort((a,b) -> b.count - a.count); // reverse count
-			}
+			Utils.sortID = !Utils.sortID;
+			Utils.invCacheSort(te.invCache);
 		} else if (button.id == 5) { // -
 			this.reqCount -= 1;
 			if (reqCount < 1) reqCount = 1;
@@ -124,8 +121,12 @@ public class GuiContainerRequestStation extends GuiContainerDecorated {
 	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
 		mc.getTextureManager().bindTexture(background);
 		drawModalRectWithCustomSizedTexture(guiLeft, guiTop, 0.0f, 0.0f, WIDTH, HEIGHT, 512, 256);
+		// page count
 		String pageString = Integer.toString(this.page+1) + "/" + Integer.toString(1+this.te.invCache.size()/itemsPerPage);
 		this.fontRenderer.drawString(pageString, guiLeft+318-(this.fontRenderer.getStringWidth(pageString)/2), guiTop+11, 0x7f7f7f);
+		// request count
+		String countString = Integer.toString(this.reqCount);
+		this.fontRenderer.drawString(countString, guiLeft+257-(this.fontRenderer.getStringWidth(countString)/2), guiTop+215, 0x7f7f7f);
 	}
 	
 	@Override

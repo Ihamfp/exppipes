@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import ihamfp.exppipes.ExppipesMod;
+import ihamfp.exppipes.Utils;
 import ihamfp.exppipes.common.network.PacketHandler;
 import ihamfp.exppipes.common.network.PacketInventoryRequest;
 import ihamfp.exppipes.common.network.PacketItemRequest;
@@ -13,7 +14,6 @@ import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.inventory.Container;
-import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
 
 public class GuiContainerPipeRequest extends GuiContainerDecorated {
@@ -21,12 +21,6 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 	public static final int HEIGHT = 231;
 	
 	public static final int itemsPerPage = 54;
-	
-	/*
-	 * true: sort by ID
-	 * false: sort by count
-	 */
-	public static boolean sortID = false;
 	
 	protected int page = 0; // 1 page = 54 items 6*9
 	protected int selected = -1; // -1 = nothing selected.
@@ -84,8 +78,8 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 				}
 			}
 		} else if (button.id == 1) {
-			this.selected = -1;
-			this.te.invCache.clear();
+			//this.selected = -1;
+			//this.te.invCache.clear();
 			PacketHandler.INSTANCE.sendToServer(new PacketInventoryRequest(new BlockDimPos(te)));
 		} else if (button.id == 2) {
 			this.page++;
@@ -98,12 +92,8 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 				this.page = 0;
 			}
 		} else if (button.id == 4) {
-			sortID = !sortID;
-			if (sortID) { // sort by id
-				te.invCache.sort((a,b) -> Item.getIdFromItem(a.stack.getItem()) - Item.getIdFromItem(b.stack.getItem()));
-			} else {
-				te.invCache.sort((a,b) -> b.count - a.count); // reverse count
-			}
+			Utils.sortID = !Utils.sortID;
+			Utils.invCacheSort(te.invCache);
 		}
 	}
 
@@ -124,7 +114,7 @@ public class GuiContainerPipeRequest extends GuiContainerDecorated {
 			this.drawItemSelector(8, 18, 9, 6, this.te.invCache, this.selected, this.page, mouseX, mouseY);
 		}
 		if (this.buttonList.get(4).isMouseOver()) { // sorting by id/count
-			this.drawHoveringText("Sorting by " + (sortID?"ID":"count"), mouseX-this.guiLeft, mouseY-this.guiTop);
+			this.drawHoveringText("Sorting by " + (Utils.sortID?"ID":"count"), mouseX-this.guiLeft, mouseY-this.guiTop);
 		}
 		super.drawGuiContainerForegroundLayer(mouseX, mouseY);
 	}

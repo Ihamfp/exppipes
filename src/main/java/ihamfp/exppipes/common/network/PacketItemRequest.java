@@ -2,7 +2,6 @@ package ihamfp.exppipes.common.network;
 
 import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.Request;
-import ihamfp.exppipes.tileentities.TileEntityRequestPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import io.netty.buffer.ByteBuf;
@@ -61,9 +60,7 @@ public class PacketItemRequest implements IMessage {
 				if (terp.network == null) return;
 				
 				Request req = terp.network.request(message.pos, message.filter, message.count);
-				if (terp instanceof TileEntityRequestPipe) {
-					((TileEntityRequestPipe)terp).requests.add(req);
-				}
+				terp.requests.add(req);
 			});
 			return null;
 		}
