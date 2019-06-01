@@ -91,4 +91,14 @@ public class Utils {
 			l.sort((a,b) -> b.count - a.count); // reverse count
 		}
 	}
+	
+	public static List<InvCacheEntry> invCacheSearch(List<InvCacheEntry> l, String s) {
+		List<InvCacheEntry> r = new ArrayList<InvCacheEntry>();
+		s = s.toLowerCase();
+		for (int i=0; i<l.size(); i++) {
+			String whereToSearch = l.get(i).stack.getDisplayName().toLowerCase();
+			if (whereToSearch.contains(s)) r.add(l.get(i));
+		}
+		return r;
+	}
 }

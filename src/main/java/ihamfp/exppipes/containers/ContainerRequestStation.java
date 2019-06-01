@@ -18,12 +18,12 @@ public class ContainerRequestStation extends ContainerTileEntity<TileEntityReque
 		}
 		// crafting matrix
 		for (int i=0; i<te.craftMatrix.getSlots(); i++) {
-			this.addSlotToContainer(new SlotItemHandler(te.craftMatrix, i, 30+(i%3)*18, 17+(i/3)*18));
+			this.ownSlots.put(this.inventorySlots.size(), this.addSlotToContainer(new SlotItemHandler(te.craftMatrix, i, 30+(i%3)*18, 17+(i/3)*18)));
 		}
 		// crafting result
-		this.addSlotToContainer(new SlotItemHandler(te.craftResult, 0, 124, 35));
+		this.ownSlots.put(this.inventorySlots.size(), this.addSlotToContainer(new SlotItemHandler(te.craftResult, 0, 124, 35)));
 		// return slot
-		this.addSlotToContainer(new SlotItemHandler(te.returnSlot, 0, 152, 63));
+		this.ownSlots.put(this.inventorySlots.size(), this.addSlotToContainer(new SlotItemHandler(te.returnSlot, 0, 152, 63)));
 	}
 
 }

@@ -50,6 +50,8 @@ public class ContainerBase extends Container {
         	if (!this.mergeItemStack(itemStack1, Collections.min(this.playerSlots.keySet()), Collections.max(this.playerSlots.keySet())+1, false)) {
         		return ItemStack.EMPTY;
         	}
+        } else { // what
+        	return ItemStack.EMPTY;
         }
         
         if (itemStack1.isEmpty()) {

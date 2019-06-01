@@ -1,6 +1,7 @@
 package ihamfp.exppipes.blocks;
 
 import ihamfp.exppipes.ExppipesMod;
+import ihamfp.exppipes.ModCreativeTabs;
 import ihamfp.exppipes.tileentities.TileEntityRequestStation;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -17,6 +18,8 @@ public class BlockRequestStation extends Block {
 	public BlockRequestStation(String registryID) {
 		super(Material.IRON);
 		this.setRegistryName(ExppipesMod.MODID, registryID);
+		this.setCreativeTab(ModCreativeTabs.PIPES);
+		this.setHardness(1.0f);
 	}
 	
 	@Override

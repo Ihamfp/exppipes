@@ -43,11 +43,23 @@ public class TESRStackDisplay extends TileEntitySpecialRenderer<TileEntityStackD
 			FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
 			int strw = fr.getStringWidth(te.displayedText);
 
-			GlStateManager.translate(0.0, textScale/2, 0.0);
+			GlStateManager.translate(0.0, textScale/2, -1.0);
 			
-			GlStateManager.scale(textScale/strw, textScale/strw, 1.0);
-			GlStateManager.translate(-strw/2, -fr.FONT_HEIGHT, -2.0);
-			fr.drawString(te.displayedText, 0, 0, 0x202020);
+			GlStateManager.scale(textScale/strw, textScale/strw, 10000);
+			GlStateManager.translate(-strw/2, -fr.FONT_HEIGHT, -0.005);
+			
+			// found all these enable/disable in the StorageDrawer code (MIT license)
+			GlStateManager.disableLighting();
+			GlStateManager.enablePolygonOffset();
+			GlStateManager.depthMask(false);
+			GlStateManager.enableBlend();
+			
+			fr.drawString(te.displayedText, 0, 0, 0xff404040);
+			GlStateManager.disableBlend();
+			GlStateManager.depthMask(true);
+			GlStateManager.disablePolygonOffset();
+			GlStateManager.enableLighting();
+			
 			GlStateManager.disableAlpha();
 			
 			GlStateManager.popMatrix();

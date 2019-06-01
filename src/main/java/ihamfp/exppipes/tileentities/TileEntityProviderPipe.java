@@ -28,6 +28,7 @@ public class TileEntityProviderPipe extends TileEntityRoutingPipe {
 		}
 		if (this.network != null && this.network.requests.size() > 0) {
 			Map<ItemStack,TileEntity> inventories = this.getInventories();
+			int extractRate = this.getMaxExtractSize();
 			for (Request req : this.network.requests) {
 				if (req.processedCount + req.processingCount.get() < req.requestedCount) { // if request not completed...
 					int neededCount = req.requestedCount-(req.processedCount+req.processingCount.get());
@@ -35,15 +36,17 @@ public class TileEntityProviderPipe extends TileEntityRoutingPipe {
 						if (!stack.isEmpty() && req.filter.doesMatch(stack)) {
 							TileEntity invTE = inventories.get(stack);
 							EnumFacing extractFace = Utils.faceFromPos(this.pos, invTE.getPos());
-							int maxExtract = stack.getCount()-(this.leaveOneItem()?1:0);
+							int maxExtract = Integer.min(stack.getCount()-(this.leaveOneItem()?1:0), extractRate);
 							ItemStack exStack = this.extractFrom(invTE.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, extractFace.getOpposite()), req.filter, Integer.min(neededCount, maxExtract));
 							req.processingCount.addAndGet(exStack.getCount());
 							neededCount -= exStack.getCount();
+							extractRate -= exStack.getCount();
 							this.itemHandler.insertedItems.add(new ItemDirection(exStack, extractFace, req.requester, this.world.getTotalWorldTime()));
-							if (neededCount <= 0) break;
+							if (neededCount <= 0 || extractRate <= 0) break;
 						}
 					}
 				}
+				if (extractRate <= 0) break;
 			}
 		}
 		

@@ -1,0 +1,24 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"pattern": [
+		"i i",
+		" l ",
+		"iri"
+	],
+	"key": {
+		"i": {
+			"type": "forge:ore_dict",
+			"ore": "ingotIron"
+		},
+		"l": {
+			"item": "minecraft:redstone_lamp"
+		},
+		"r": {
+			"item": "exppipes:blockroutingpipe"
+		}
+	},
+	"result": {
+		"item": "exppipes:blockstackdisplay",
+		"count": 1
+	}
+}
