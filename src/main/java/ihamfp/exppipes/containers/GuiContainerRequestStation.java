@@ -91,8 +91,8 @@ public class GuiContainerRequestStation extends GuiContainerDecorated {
 	@Override
 	public void handleMouseInput() throws IOException {
 		int d = Mouse.getEventDWheel();
-		if (d > 0) this.reqCount += 1;
-		else if (d < 0) this.reqCount -= 1;
+		int addCount = (d<0?-1:1)*(isShiftKeyDown()?64:1)*(isCtrlKeyDown()?16:1) - (this.reqCount==1?1:0);
+		this.reqCount += addCount;
 		if (reqCount < 1) reqCount = 1;
 		super.handleMouseInput();
 	}
@@ -156,19 +156,26 @@ public class GuiContainerRequestStation extends GuiContainerDecorated {
 			Utils.sortID = !Utils.sortID;
 			Utils.invCacheSort(te.invCache);
 			if (this.searchItems!=null) Utils.invCacheSort(this.searchItems);
-		} else if (button.id == 5) { // -
-			this.reqCount -= 1;
+		} else if (button.id == 5 || button.id == 6) { // +/-
+			int addCount = (button.id==5?-1:1)*(isShiftKeyDown()?64:1)*(isCtrlKeyDown()?16:1) - (this.reqCount==1?1:0);
+			this.reqCount += addCount;
 			if (reqCount < 1) reqCount = 1;
-		} else if (button.id == 6) { // +
-			this.reqCount += 1;
 		} else if (button.id == 7) { // oredict
 			reqOre = !reqOre;
 			button.packedFGColour = reqOre?0:0xff0000;
 		}
 	}
+	
+	public void updateButtonText() {
+		// +/- buttons
+		int charmult = (isShiftKeyDown()?3:1)+(isCtrlKeyDown()?1:0);
+		this.buttonList.get(5).displayString = new String(new char[charmult]).replace("\0", "-");
+		this.buttonList.get(6).displayString = new String(new char[charmult]).replace("\0", "+");
+	}
 
 	@Override
 	protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
+		this.updateButtonText();
 		mc.getTextureManager().bindTexture(background);
 		drawModalRectWithCustomSizedTexture(guiLeft, guiTop, 0.0f, 0.0f, WIDTH, HEIGHT, 512, 256);
 		// page count
@@ -176,6 +183,7 @@ public class GuiContainerRequestStation extends GuiContainerDecorated {
 		this.fontRenderer.drawString(pageString, guiLeft+318-(this.fontRenderer.getStringWidth(pageString)/2), guiTop+11, 0x7f7f7f);
 		// request count
 		int stackSize = 64;
+		if (this.te == null || this.te.invCache == null || selected > this.te.invCache.size()) selected = -1;
 		if (selected >= 0) {
 			stackSize = this.te.invCache.get(this.selected + this.page*itemsPerPage).stack.getMaxStackSize();
 		}
