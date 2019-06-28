@@ -91,9 +91,10 @@ public class GuiContainerRequestStation extends GuiContainerDecorated {
 	@Override
 	public void handleMouseInput() throws IOException {
 		int d = Mouse.getEventDWheel();
-		int addCount = (d<0?-1:1)*(isShiftKeyDown()?64:1)*(isCtrlKeyDown()?16:1) - (this.reqCount==1?1:0);
-		this.reqCount += addCount;
-		if (reqCount < 1) reqCount = 1;
+		if (d != 0) {
+			this.reqCount += (d<0?-1:1)*(isShiftKeyDown()?64:1)*(isCtrlKeyDown()?16:1);
+			if (reqCount < 1) reqCount = 1;
+		}
 		super.handleMouseInput();
 	}
 	
@@ -183,7 +184,7 @@ public class GuiContainerRequestStation extends GuiContainerDecorated {
 		this.fontRenderer.drawString(pageString, guiLeft+318-(this.fontRenderer.getStringWidth(pageString)/2), guiTop+11, 0x7f7f7f);
 		// request count
 		int stackSize = 64;
-		if (this.te == null || this.te.invCache == null || selected > this.te.invCache.size()) selected = -1;
+		if (this.te == null || this.te.invCache == null || selected >= this.te.invCache.size()) selected = -1;
 		if (selected >= 0) {
 			stackSize = this.te.invCache.get(this.selected + this.page*itemsPerPage).stack.getMaxStackSize();
 		}
