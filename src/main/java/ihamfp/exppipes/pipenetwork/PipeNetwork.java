@@ -10,6 +10,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import com.google.common.collect.Iterables;
 
 import ihamfp.exppipes.ExppipesMod;
+import ihamfp.exppipes.Utils;
+import ihamfp.exppipes.common.Configs;
 import ihamfp.exppipes.items.ItemCraftingPattern;
 import ihamfp.exppipes.tileentities.TileEntityCraftingPipe;
 import ihamfp.exppipes.tileentities.TileEntityProviderPipe;
@@ -116,7 +118,7 @@ public class PipeNetwork {
 		//  * Try to propagate to source, one level at a time
 		//  * When source is found, return the side to the node who found it
 		List<BlockPos> visitedNodes = new ArrayList<BlockPos>();
-		visitedNodes.add(dest.getPos());
+		visitedNodes.add(new BlockDimPos(dest));
 		List<BlockPos> buff = new ArrayList<BlockPos>();
 		
 		while (!visitedNodes.contains(source.getPos())) {
@@ -125,14 +127,17 @@ public class PipeNetwork {
 				TileEntityRoutingPipe v = (TileEntityRoutingPipe) dest.getWorld().getTileEntity(vPos);
 				if (v.connectedNodesPos.containsValue(source.getPos())) {
 					if (!source.connectedNodesPos.containsValue(v.getPos())) {
-						ExppipesMod.logger.error("One-way connection wtf ?! searching v:" + v.getPos().toString() + "; source: " + source.getPos().toString());
-						for (EnumFacing f : EnumFacing.VALUES) {
-							if (v.connectedNodesPos.get(f) == null) continue;
-							ExppipesMod.logger.error("v=>" + f.getName() + "=>" + v.connectedNodesPos.get(f).toString());
-						}
-						for (EnumFacing f : EnumFacing.VALUES) {
-							if (source.connectedNodesPos.get(f) == null) continue;
-							ExppipesMod.logger.error("Source=>" + f.getName() + "=>" + source.connectedNodesPos.get(f).toString());
+						Utils.smokeCenter(source);
+						if (Configs.debug) {
+							ExppipesMod.logger.error("One-way connection wtf ?! searching v:" + v.getPos().toString() + "; source: " + source.getPos().toString());
+							for (EnumFacing f : EnumFacing.VALUES) {
+								if (v.connectedNodesPos.get(f) == null) continue;
+								ExppipesMod.logger.error("v=>" + f.getName() + "=>" + v.connectedNodesPos.get(f).toString());
+							}
+							for (EnumFacing f : EnumFacing.VALUES) {
+								if (source.connectedNodesPos.get(f) == null) continue;
+								ExppipesMod.logger.error("Source=>" + f.getName() + "=>" + source.connectedNodesPos.get(f).toString());
+							}
 						}
 					} else {
 						for (EnumFacing f : source.connectedNodesPos.keySet()) {
@@ -150,15 +155,18 @@ public class PipeNetwork {
 			}
 			visitedNodes.addAll(buff);
 			if (buff.size() == 0 && !visitedNodes.contains(source.getPos())) {
-				ExppipesMod.logger.error("Node is in network but not connected to it: source, " + source.getPos().toString());
-				for (BlockPos pos : visitedNodes) {
-					ExppipesMod.logger.error("    * " + pos.toString());
+				Utils.smokeCenter(source);
+				if (Configs.debug) {
+					ExppipesMod.logger.error("Node is in network but not connected to it: source, " + source.getPos().toString());
+					for (BlockPos pos : visitedNodes) {
+						ExppipesMod.logger.error("    * " + pos.toString());
+					}
 				}
 				return null;
 			}
 		}
 		
-		ExppipesMod.logger.error("Found source but no path from " + source.getPos().toString() + "to " + dest.getPos().toString());
+		if (Configs.debug) ExppipesMod.logger.error("Found source but no path from " + source.getPos().toString() + "to " + dest.getPos().toString());
 		
 		return null;
 	}
@@ -285,6 +293,7 @@ public class PipeNetwork {
 			if (this.requests.get(i).filter.priority > filter.priority && this.requests.get(i+1).filter.priority <= filter.priority) {
 				this.requests.add(i, req);
 				added = true;
+				break;
 			}
 		}
 		if (!added) this.requests.add(req);

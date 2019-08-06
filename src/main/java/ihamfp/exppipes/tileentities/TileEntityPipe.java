@@ -85,6 +85,39 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 		return false;
 	}
 	
+	/***
+	 * Search an item than matches the filter and can be inserted and merged in a slot.
+	 * Returns a filter that will only match insertable items:
+	 *  - the original filter, if an empty slot is found
+	 *  - a strict filter, if no empty slot is found but a non-full slot contains an item that matches the original filter
+	 *  - null, if nothing can be inserted
+	 */
+	public FilterConfig insertableMatchingFilter(FilterConfig filter) {
+		ItemStack newRef = null;
+		for (EnumFacing f : EnumFacing.VALUES) {
+			BlockPos check = this.pos.offset(f);
+			if (this.world.getTileEntity(check) == null) continue;
+			if (!this.world.getTileEntity(check).hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, f.getOpposite())) continue;
+			IItemHandler itemHandler = this.world.getTileEntity(check).getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, f.getOpposite());
+			if (itemHandler instanceof PipeItemHandler || itemHandler instanceof WrappedItemHandler) continue;
+			
+			// search in all slots
+			for (int i=0; i<itemHandler.getSlots(); i++) {
+				ItemStack stackInSlot = itemHandler.getStackInSlot(i);
+				if (stackInSlot.isEmpty()) return filter; // empty slot found !
+				if (filter.doesMatch(stackInSlot) && stackInSlot.getCount() < stackInSlot.getMaxStackSize()) {
+					newRef = stackInSlot;
+				}
+			}
+		}
+		if (newRef != null) {
+			newRef = newRef.copy();
+			newRef.setCount(newRef.getMaxStackSize()-newRef.getCount());
+			return new FilterConfig(newRef, 2, false, newRef.getCount()); // strict filter
+		}
+		return null;
+	}
+	
 	// output stack may not match the input stack
 	ItemStack extractFrom(IItemHandler itemHandler, ItemStack stack, int count) {
 		return this.extractFrom(itemHandler, new FilterConfig(stack, 0, false), count);

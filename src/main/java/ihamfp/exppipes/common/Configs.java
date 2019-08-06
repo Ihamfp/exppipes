@@ -37,4 +37,7 @@ public class Configs {
 	@Comment({"Time in ticks between pipe network scan", "increasing will reduce server load, but also responsiveness"})
 	@RangeInt(min=0)
 	public static int updateInterval = 60; // In ticks, interval between searchNodes() calls
+	
+	@Comment({"Enable debug mode"})
+	public static boolean debug = false;
 }

@@ -30,7 +30,7 @@ public class TileEntitySupplierPipe extends TileEntityRoutingPipe {
 	public ConfigRoutingPipe supplyConfig = new ConfigRoutingPipe();
 	private String oldSupplyConfig = "";
 	
-	private Map<FilterConfig,Request> requests = new HashMap<FilterConfig,Request>();
+	protected Map<FilterConfig,Request> requests = new HashMap<FilterConfig,Request>();
 	
 	public boolean invContains(Map<ItemStack,TileEntity> inv, FilterConfig filter) {
 		boolean didMatch = false;
@@ -72,20 +72,23 @@ public class TileEntitySupplierPipe extends TileEntityRoutingPipe {
 		}
 
 		super.serverUpdate();
-
-		Map<ItemStack,TileEntity> inv = this.getInventories();
+		
 		if (this.requests.size() == 0) { // temporary
 			for (FilterConfig filter : supplyConfig.filters) {
-				if (this.network != null && !this.requests.containsKey(filter) && this.canInsert(filter.reference)) {
-					this.requests.put(filter, this.network.request(new BlockDimPos(this), filter, filter.reference.getCount()));
+				if (this.network != null && !this.requests.containsKey(filter)) {
+					FilterConfig reqFilter = this.insertableMatchingFilter(filter);
+					if (reqFilter == null) continue;
+					this.requests.put(filter, this.network.request(new BlockDimPos(this), reqFilter, filter.reference.getCount()));
 					break;
 				}
 			}
 		}
 		if (this.requests.size() == 0) {
 			for (FilterConfig filter : supplyConfig.computerFilters) {
-				if (!invContains(inv, filter) && this.network != null && !this.requests.containsKey(filter) && this.canInsert(filter.reference)) {
-					this.requests.put(filter, this.network.request(new BlockDimPos(this), filter, filter.reference.getCount()));
+				if (this.network != null && !this.requests.containsKey(filter)) {
+					FilterConfig reqFilter = this.insertableMatchingFilter(filter);
+					if (reqFilter == null) continue;
+					this.requests.put(filter, this.network.request(new BlockDimPos(this), reqFilter, filter.reference.getCount()));
 					break;
 				}
 			}

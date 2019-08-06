@@ -101,6 +101,17 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		return isPipe(this.world.getTileEntity(pos));
 	}
 	
+	public int connectedPipesCount(TileEntity te) {
+		int connPipes = 0;
+		for (EnumFacing f : EnumFacing.VALUES) {
+			if (te instanceof TileEntityPipe && ((TileEntityPipe)te).disableConnection.getOrDefault(f, false)) continue;
+			if (isPipe(te.getWorld().getTileEntity(te.getPos().offset(f)))) {
+				connPipes++;
+			}
+		}
+		return connPipes;
+	}
+	
 	/***
 	 * Get all connected nodes, on each side.
 	 */
@@ -121,33 +132,44 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 			TileEntityRoutingPipe foundNode = null;
 			EnumFacing foundFace = null;
 			boolean foundNext = true;
+			boolean foundOver = false; // over-connection on one pipe, kill route
 			
-			if (this.world.getTileEntity(currentPos) instanceof TileEntityRoutingPipe) {
+			if (this.world.getTileEntity(currentPos) instanceof TileEntityRoutingPipe) { // directly connected
 				foundNode = (TileEntityRoutingPipe) this.world.getTileEntity(currentPos);
 				foundFace = e.getOpposite();
+			} else if (connectedPipesCount(this.world.getTileEntity(currentPos)) > 2) {
+				foundOver = true;
 			} else {
-				while (foundNext && foundNode == null) { // follow the conduit
+				while (foundNext && foundNode == null && !foundOver) { // follow the conduit
 					foundNext = false;
 					for (EnumFacing f : EnumFacing.VALUES) { // search for pipes connected to the currently checked pipe
+						if (this.disableConnection.getOrDefault(f, false)) continue;
 						BlockPos nextPos = currentPos.offset(f);
 						if (checkedPipes.contains(nextPos)) continue; // going backward
 						TileEntity nextTE = this.world.getTileEntity(nextPos);
-						if (nextTE != null && nextTE instanceof TileEntityRoutingPipe) { // found a routing pipe !
+						if (nextTE != null && nextTE instanceof TileEntityRoutingPipe && !((TileEntityRoutingPipe)nextTE).disableConnection.getOrDefault(f.getOpposite(), false)) { // found a routing pipe !
 							foundNode = (TileEntityRoutingPipe) nextTE;
 							foundFace = f.getOpposite();
 							break;
 						} else if (isPipe(nextTE)) { // found a normal pipe
-							checkedPipes.add(nextPos);
-							currentPos = nextPos;
-							foundNext = true;
-							jumpCount++;
+							if (nextTE instanceof TileEntityPipe && ((TileEntityPipe)nextTE).disableConnection.getOrDefault(f.getOpposite(), false)) continue;
+							int connPipes = connectedPipesCount(nextTE);
+							if (connPipes <= 2) {
+								checkedPipes.add(nextPos);
+								currentPos = nextPos;
+								foundNext = true;
+								jumpCount++;
+							} else {
+								foundOver = true;
+								break; // just to be safe: **no networked connection on these pipes**
+							}
 							break;
 						}
 					}
 				}
 			}
 			
-			if (foundNode != null) {
+			if (foundNode != null && !foundOver) {
 				this.connectedNodesPos.put(e, new BlockDimPos(foundNode));
 				this.nodeDist.put(e, jumpCount);
 				foundNode.connectedNodesPos.put(foundFace, new BlockDimPos(this));
@@ -174,8 +196,15 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 				} else if (this.network != foundNode.network) { // should never happen
 					ExppipesMod.logger.error("Unsupported merging");
 				}
+			} else if (this.connectedNodesPos.containsKey(e)) { // kill connection
+				List<TileEntityRoutingPipe> nodes = new ArrayList<TileEntityRoutingPipe>();
+				nodes.add(this);
+				nodes.add((TileEntityRoutingPipe)this.connectedNodesPos.get(e).getTE());
+				PipeNetwork.split(nodes);
 			}
 		}
+		
+		if (this.connectedNodesPos.size() == 0) this.network = null; // fix this if ever needed, like with tesseract pipes or such
 	}
 	
 	@Override

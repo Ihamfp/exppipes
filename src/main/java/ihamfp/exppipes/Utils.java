@@ -6,7 +6,9 @@ import java.util.List;
 import ihamfp.exppipes.tileentities.InvCacheEntry;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.oredict.OreDictionary;
@@ -100,5 +102,14 @@ public class Utils {
 			if (whereToSearch.contains(s)) r.add(l.get(i));
 		}
 		return r;
+	}
+	
+	public static void smokeCenter(TileEntity te) {
+		for (int i=0; i<10;i++) {
+			double rx = te.getWorld().rand.nextDouble();
+			double ry = te.getWorld().rand.nextDouble();
+			double rz = te.getWorld().rand.nextDouble();
+			te.getWorld().spawnParticle(EnumParticleTypes.SMOKE_NORMAL, true, te.getPos().getX()+0.5+rx, te.getPos().getY()+0.5+ry, te.getPos().getZ()+0.5+rz, 0.0, 0.0, 0.0);
+		}
 	}
 }
