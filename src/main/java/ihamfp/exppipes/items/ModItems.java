@@ -19,6 +19,7 @@ public class ModItems {
 	public static ItemUpgrade superPipeUpgrade = new ItemUpgrade("superPipeUpgrade");
 	public static ItemUpgrade extractionSpeedUpgrade = new ItemUpgrade("extractionSpeedUpgrade");
 	public static ItemUpgrade itemLockUpgrade = new ItemUpgrade("itemLockUpgrade");
+	public static ItemLocator itemLocator = new ItemLocator("itemLocator");
 	
 	public static ArrayList<Item> modItems = new ArrayList<Item>();
 	
@@ -29,6 +30,7 @@ public class ModItems {
 		modItems.add(superPipeUpgrade);
 		modItems.add(extractionSpeedUpgrade);
 		modItems.add(itemLockUpgrade);
+		modItems.add(itemLocator);
 		
 		MinecraftForge.EVENT_BUS.register(new ModItems());
 	}

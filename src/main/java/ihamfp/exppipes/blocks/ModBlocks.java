@@ -28,6 +28,7 @@ public class ModBlocks {
 	public static BlockCountingPipe countingPipe = new BlockCountingPipe("blockCountingPipe");
 	public static BlockStockKeeperPipe stockKeeperPipe = new BlockStockKeeperPipe("blockStockKeeperPipe");
 	public static BlockRetrieverPipe retrieverPipe = new BlockRetrieverPipe("blockRetrieverPipe");
+	public static BlockRobinPipe robinPipe = new BlockRobinPipe("blockRobinPipe");
 	
 	public static BlockStackDisplay stackDisplay = new BlockStackDisplay("blockStackDisplay");
 	public static BlockBufferStackDisplay bufferStackDisplay = new BlockBufferStackDisplay("blockBufferStackDisplay");
@@ -50,6 +51,7 @@ public class ModBlocks {
 		modBlocks.add(countingPipe);
 		modBlocks.add(stockKeeperPipe);
 		modBlocks.add(retrieverPipe);
+		modBlocks.add(robinPipe);
 		
 		modBlocks.add(stackDisplay);
 		modBlocks.add(bufferStackDisplay);

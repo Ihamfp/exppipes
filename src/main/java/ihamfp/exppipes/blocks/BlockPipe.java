@@ -145,7 +145,7 @@ public class BlockPipe extends Block {
 	@Override
 	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
 		if (hand == EnumHand.MAIN_HAND && worldIn.getTileEntity(pos) instanceof TileEntityPipe) {
-			if (playerIn.isSneaking()) {
+			if (playerIn.isSneaking() && !worldIn.isRemote) {
 				// get face to connect/disconnect
 				EnumFacing f = null;
 				if (Utils.bbContainsEq(bbCENTER, hitX, hitY, hitZ)) { // clicked on center/unconnected side
@@ -174,7 +174,7 @@ public class BlockPipe extends Block {
 					//ExppipesMod.logger.info("Face: " + f.getName() + " => " + te.disableConnection.getOrDefault(f,false).toString());
 				}
 				return true;
-			} else if (this.getGuiID() > 0) {
+			} else if (this.getGuiID() > 0 && !worldIn.isRemote) {
 				playerIn.openGui(ExppipesMod.instance, this.getGuiID(), worldIn, pos.getX(), pos.getY(), pos.getZ());
 				return true;
 			}

@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ihamfp.exppipes.blocks.BlockPipe;
 import ihamfp.exppipes.common.Configs;
 import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
@@ -271,6 +272,7 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 				this.disableConnection.put(f, true);
 			}
 		}
+		
 		super.readFromNBT(compound);
 	}
 
@@ -313,10 +315,17 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 			}
 			if (nbtTag.hasKey("discon")) {
 				NBTTagCompound discon = nbtTag.getCompoundTag("discon");
+				IBlockState state = this.world.getBlockState(this.pos);
 				for (EnumFacing f : EnumFacing.VALUES) {
+					state = state.withProperty(BlockPipe.propertyMap.get(f), discon.getBoolean(f.getName()));
 					if (discon.getBoolean(f.getName())) {
 						this.disableConnection.put(f, true);
+					} else {
+						this.disableConnection.remove(f);
 					}
+				}
+				if (!state.equals(this.world.getBlockState(this.pos))) {
+					this.world.notifyBlockUpdate(this.pos, this.world.getBlockState(pos), state, 3);
 				}
 			}
 		}

@@ -12,6 +12,7 @@ tile.exppipes:blockpolyproviderpipe.name=Polymorphic Provider Pipe
 tile.exppipes:blockcountingpipe.name=Counting Pipe
 tile.exppipes:blockstockkeeperpipe.name=Stock Keeper Pipe
 tile.exppipes:blockretrieverpipe.name=Retriever Pipe
+tile.exppipes:blockrobinpipe.name=Sequencer Pipe
 
 tile.exppipes:blockstackdisplay.name=Stack Display
 tile.exppipes:blockbufferstackdisplay.name=Buffered Stack Display
