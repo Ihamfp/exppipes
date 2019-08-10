@@ -30,6 +30,11 @@ public class ItemLocator extends Item {
 		this.setMaxStackSize(1);
 	}
 	
+	protected void add2mem(TileEntityRoutingPipe te, NBTTagList positions) {
+		BlockDimPos tePos = new BlockDimPos(te);
+		positions.appendTag(new NBTTagIntArray(new int[] {tePos.getX(), tePos.getY(), tePos.getZ(), tePos.dimension}));
+	}
+	
 	@Override
 	public EnumActionResult onItemUseFirst(EntityPlayer player, World world, BlockPos pos, EnumFacing side, float hitX, float hitY, float hitZ, EnumHand hand) {
 		if (!world.isRemote) {
@@ -47,8 +52,7 @@ public class ItemLocator extends Item {
 				player.sendMessage(new TextComponentString("Saved to pipe!"));
 				return EnumActionResult.SUCCESS;
 			} else if (te instanceof TileEntityRoutingPipe) {
-				BlockDimPos tePos = new BlockDimPos(te);
-				positions.appendTag(new NBTTagIntArray(new int[] {tePos.getX(), tePos.getY(), tePos.getZ(), tePos.dimension}));
+				this.add2mem((TileEntityRoutingPipe)te, positions);
 				heldNBT.setTag("positions", positions);
 				heldStack.setTagCompound(heldNBT);
 				te.markDirty();

@@ -177,14 +177,14 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 				
 				if (this.network == null && foundNode.network != null) { // append this node to foundNode's network
 					this.network = foundNode.network;
-					this.network.nodes.add(this);
+					if (!this.network.nodes.contains(this)) this.network.nodes.add(this);
 				} else if (this.network != null && foundNode.network == null) { // append foundNode to this node's network
 					foundNode.network = this.network;
-					this.network.nodes.add(foundNode);
+					if (!this.network.nodes.contains(foundNode)) this.network.nodes.add(foundNode);
 				} else if (this.network == null && foundNode.network == null) { // create network
 					this.network = new PipeNetwork();
-					this.network.nodes.add(this);
-					this.network.nodes.add(foundNode);
+					if (!this.network.nodes.contains(this)) this.network.nodes.add(this);
+					if (!this.network.nodes.contains(foundNode)) this.network.nodes.add(foundNode);
 				} else if (this.network != null && foundNode.network != null && !this.network.equals(foundNode.network)) { // merge networks
 					this.network.nodes.addAll(foundNode.network.nodes);
 					this.network.providers.addAll(foundNode.network.providers);

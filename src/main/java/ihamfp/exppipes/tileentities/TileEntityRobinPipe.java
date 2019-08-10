@@ -21,9 +21,17 @@ public class TileEntityRobinPipe extends TileEntityRoutingPipe {
 		TileEntity te = destpos.getTE();
 		if (te instanceof TileEntityRoutingPipe && ((TileEntityRoutingPipe)te).network == this.network && this.network != null) {
 			if (((TileEntityRoutingPipe)te).sinkConfig.doesMatchAllFilters(stack)) return true;
-			return false;
 		}
 		return false;
+	}
+	
+	@Override
+	public boolean canInsert(ItemStack stack) { // Override so that the pipe can receive items and dispatch them later
+		for (BlockDimPos p : this.robinList) {
+			if (!isDestPosValid(p, stack)) continue;
+			if (((TileEntityRoutingPipe)p.getTE()).canInsert(stack)) return true;
+		}
+		return super.canInsert(stack);
 	}
 	
 	@Override
@@ -56,6 +64,7 @@ public class TileEntityRobinPipe extends TileEntityRoutingPipe {
 			int pipePos[] = ((NBTTagIntArray) positions.get(i)).getIntArray();
 			this.robinList.add(new BlockDimPos(pipePos[0], pipePos[1], pipePos[2], pipePos[3]));
 		}
+		this.robinIndex = compound.getInteger("index");
 		super.readFromNBT(compound);
 	}
 	
@@ -66,6 +75,7 @@ public class TileEntityRobinPipe extends TileEntityRoutingPipe {
 			positions.appendTag(new NBTTagIntArray(new int[] {pos.getX(), pos.getY(), pos.getZ(), pos.dimension}));
 		}
 		compound.setTag("positions", positions);
+		compound.setInteger("index", this.robinIndex);
 		return super.writeToNBT(compound);
 	}
 }

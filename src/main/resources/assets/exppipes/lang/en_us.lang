@@ -18,8 +18,11 @@ tile.exppipes:blockstackdisplay.name=Stack Display
 tile.exppipes:blockbufferstackdisplay.name=Buffered Stack Display
 tile.exppipes:blockrequeststation.name=Request Station
 
+item.exppipes:pipedebug.name=Pipe Debug
 item.exppipes:craftingpattern.name=Crafting Pattern
 item.exppipes:pipeupgrade.name=Pipe Upgrade
 item.exppipes:superpipeupgrade.name=Super Pipe Upgrade
 item.exppipes:extractionspeedupgrade.name=Extraction Speed Upgrade
 item.exppipes:itemlockupgrade.name=Item Lock Upgrade
+item.exppipes:itemlocator.name=Locator
+item.exppipes:itemautolocator.name=Autolocator

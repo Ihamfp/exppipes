@@ -3,6 +3,7 @@ package ihamfp.exppipes.tileentities.pipeconfig;
 import java.util.ArrayList;
 import java.util.List;
 
+import ihamfp.exppipes.ExppipesMod;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -70,5 +71,17 @@ public class ConfigRoutingPipe implements INBTSerializable<NBTTagCompound> {
 				this.filters.add(new FilterConfig(entry));
 			}
 		}
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof ConfigRoutingPipe)) return false;
+		ConfigRoutingPipe cobj = (ConfigRoutingPipe)obj;
+		if (cobj.filters.size() != this.filters.size()) return false;
+		ExppipesMod.logger.info(" + checking all filters");
+		for (int i=0; i<this.filters.size(); i++) {
+			if (!cobj.filters.get(i).equals(this.filters.get(i))) return false;
+		}
+		return true;
 	}
 }

@@ -86,4 +86,10 @@ public class FilterConfig implements INBTSerializable<NBTTagCompound> {
 	public String toString() {
 		return (Filters.filters.get(this.filterId).getLongName() + (this.blacklist?" (blacklist)":"") + ": " + this.reference.toString());
 	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof FilterConfig)) return false;
+		return this.toString().equals(obj.toString());
+	}
 }
