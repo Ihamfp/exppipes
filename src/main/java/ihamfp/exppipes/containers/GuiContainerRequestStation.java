@@ -132,7 +132,11 @@ public class GuiContainerRequestStation extends GuiContainerDecorated {
 					break;
 				}
 			}
-			PacketHandler.INSTANCE.sendToServer(new PacketItemRequest(new BlockDimPos(terp), new FilterConfig(entry.stack, reqOre?4:2, false), this.reqCount));
+			if (terp != null) {
+				PacketHandler.INSTANCE.sendToServer(new PacketItemRequest(new BlockDimPos(terp), new FilterConfig(entry.stack, reqOre?4:2, false), this.reqCount));
+			} else {
+				ExppipesMod.logger.info("Requested things from station with no network");
+			}
 			
 			if (entry.count != 0) {
 				entry.count -= this.reqCount; // do some client-side prediction
