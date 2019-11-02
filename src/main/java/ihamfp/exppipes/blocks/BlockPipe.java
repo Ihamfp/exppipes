@@ -8,6 +8,9 @@ import java.util.Map;
 import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.ModCreativeTabs;
 import ihamfp.exppipes.Utils;
+import ihamfp.exppipes.common.network.PacketHandler;
+import ihamfp.exppipes.common.network.PacketSideDiscon;
+import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.PipeNetwork;
 import ihamfp.exppipes.tileentities.TileEntityPipe;
@@ -15,19 +18,26 @@ import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
+import net.minecraft.block.properties.PropertyEnum;
 import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.EnumDyeColor;
+import net.minecraft.item.ItemDye;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.ChunkCache;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
@@ -49,6 +59,9 @@ public class BlockPipe extends Block {
 			put(EnumFacing.NORTH, connNORTH);
 			put(EnumFacing.SOUTH, connSOUTH);
 	}};
+	
+	public static final PropertyBool opaque = PropertyBool.create("opaque");
+	public static final PropertyEnum<EnumDyeColor> pipeColor = PropertyEnum.create("color", EnumDyeColor.class);
 	
 	public static final AxisAlignedBB bbCENTER = new AxisAlignedBB(5/16D, 5/16D,  5/16D, 11/16D, 11/16D, 11/16D);
 	static final AxisAlignedBB bbUP     = new AxisAlignedBB(5/16D, 11/16D, 5/16D, 11/16D, 16/16D, 11/16D);
@@ -85,7 +98,9 @@ public class BlockPipe extends Block {
 				.withProperty(connEAST,  false)
 				.withProperty(connWEST,  false)
 				.withProperty(connNORTH, false)
-				.withProperty(connSOUTH, false));
+				.withProperty(connSOUTH, false)
+				.withProperty(opaque, false)
+				.withProperty(pipeColor, EnumDyeColor.BLACK));
 	}
 	
 	@Override
@@ -95,7 +110,9 @@ public class BlockPipe extends Block {
 
 	@Override
 	public TileEntity createTileEntity(World world, IBlockState state) {
-		return new TileEntityPipe();
+		TileEntityPipe newTE = new TileEntityPipe();
+		if (world != null) ExppipesMod.logger.info("Created TE in " + (world.isRemote?"remote":"server") + " world");
+		return newTE;
 	}
 
 	@Override
@@ -142,10 +159,28 @@ public class BlockPipe extends Block {
 		return -1;
 	}
 	
+	// FIXME found the final problem: my future me, you need to check if the pipe can connect to another pipe that's normally disconnected.
+	// Save me Obi-wan Kenobi, you're our last hope.
 	@Override
 	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+		if (!worldIn.isRemote) ExppipesMod.logger.info(hand.name() + "Click !");
+		// Opacity/color
+		if (worldIn.getTileEntity(pos) instanceof TileEntityPipe && !worldIn.isRemote) {
+			TileEntityPipe te = (TileEntityPipe) worldIn.getTileEntity(pos);
+			ItemStack heldItem = playerIn.getHeldItem(hand);
+			if (heldItem.getItem() instanceof ItemDye) { // TODO support oreDict dye
+				EnumDyeColor dyeColor = EnumDyeColor.byDyeDamage(heldItem.getMetadata());
+				ExppipesMod.logger.info("New color " + dyeColor.getName() + ", was " + (te.opaque?state.getValue(pipeColor).getName():"clear"));
+				te.opaque = true;
+				te.dyeColor = dyeColor;
+				worldIn.setBlockState(pos, state.withProperty(opaque, true).withProperty(pipeColor, dyeColor), 3);
+				return true;
+			}
+		}
+		// Connection/Disconnection
 		if (hand == EnumHand.MAIN_HAND && worldIn.getTileEntity(pos) instanceof TileEntityPipe) {
-			if (playerIn.isSneaking() && !worldIn.isRemote) {
+			if (playerIn.isSneaking()) {
+				ExppipesMod.logger.info("DisClick!");
 				// get face to connect/disconnect
 				EnumFacing f = null;
 				if (Utils.bbContainsEq(bbCENTER, hitX, hitY, hitZ)) { // clicked on center/unconnected side
@@ -160,19 +195,31 @@ public class BlockPipe extends Block {
 				// connect/disconnect
 				if (f == null) return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
 				TileEntityPipe te = (TileEntityPipe) worldIn.getTileEntity(pos);
-				if (worldIn.getTileEntity(pos.offset(f)) instanceof TileEntityPipe && !te.disableConnection.getOrDefault(f, false)) {
-					TileEntityPipe other = (TileEntityPipe) worldIn.getTileEntity(pos.offset(f));
-					if (other.disableConnection.getOrDefault(f.getOpposite(), false)) { // reconnect to the other pipe
-						other.disableConnection.put(f.getOpposite(), false);
-						worldIn.notifyBlockUpdate(other.getPos(), worldIn.getBlockState(other.getPos()), worldIn.getBlockState(other.getPos()).withProperty(propertyMap.get(f.getOpposite()), true), 3);
-						return true;
+				if (!worldIn.isRemote && this.canConnectTo(pos.offset(f), f.getOpposite(), worldIn)) {
+					if (te.disableConnection.getOrDefault(f, false)) {
+						te.disableConnection.remove(f);
 					}
+					else {
+						te.disableConnection.put(f, true);
+					}
+					PacketHandler.INSTANCE.sendToAllTracking(new PacketSideDiscon(new BlockDimPos(te), f, te.disableConnection.getOrDefault(f, false)), new TargetPoint(worldIn.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 0.0));
+					worldIn.setBlockState(pos, state.withProperty(propertyMap.get(f), !te.disableConnection.getOrDefault(f,false)), 2);
+					ExppipesMod.logger.info("Face: " + f.getName() + " => " + te.disableConnection.getOrDefault(f,false).toString());
 				}
-				if (this.canConnectTo(pos.offset(f), f.getOpposite(), worldIn)) {
-					te.disableConnection.put(f, !te.disableConnection.getOrDefault(f, false));
-					worldIn.notifyBlockUpdate(pos, state, state.withProperty(propertyMap.get(f), !te.disableConnection.get(f)), 3);
-					//ExppipesMod.logger.info("Face: " + f.getName() + " => " + te.disableConnection.getOrDefault(f,false).toString());
+				if (!worldIn.isRemote && worldIn.getTileEntity(pos.offset(f)) instanceof TileEntityPipe) {
+					BlockPos offsetPos = pos.offset(f);
+					TileEntityPipe other = (TileEntityPipe) worldIn.getTileEntity(offsetPos);
+					if (!te.disableConnection.getOrDefault(f, false) && other.disableConnection.getOrDefault(f.getOpposite(), false)) { // reconnect to the other pipe
+						other.disableConnection.remove(f.getOpposite());
+						//return true;
+					} else if (te.disableConnection.getOrDefault(f, false) && !other.disableConnection.getOrDefault(f.getOpposite(), false)) { // disconnect the other pipe
+						other.disableConnection.put(f.getOpposite(), true);
+					}
+					PacketHandler.INSTANCE.sendToAllTracking(new PacketSideDiscon(new BlockDimPos(other), f.getOpposite(), other.disableConnection.getOrDefault(f.getOpposite(), false)), new TargetPoint(worldIn.provider.getDimension(), offsetPos.getX(), offsetPos.getY(), offsetPos.getZ(), 0.0));
+					worldIn.notifyBlockUpdate(other.getPos(), worldIn.getBlockState(other.getPos()), worldIn.getBlockState(other.getPos()).withProperty(propertyMap.get(f.getOpposite()), true), 2);
+					other.markDirty();
 				}
+				te.markDirty();
 				return true;
 			} else if (this.getGuiID() > 0 && !worldIn.isRemote) {
 				playerIn.openGui(ExppipesMod.instance, this.getGuiID(), worldIn, pos.getX(), pos.getY(), pos.getZ());
@@ -190,27 +237,37 @@ public class BlockPipe extends Block {
 
 	@Override
 	protected BlockStateContainer createBlockState() {
-		return new BlockStateContainer(this, connUP, connDOWN, connEAST, connWEST, connNORTH, connSOUTH);
+		return new BlockStateContainer(this, connUP, connDOWN, connEAST, connWEST, connNORTH, connSOUTH, opaque, pipeColor);
 	}
 	
 	private boolean canConnectTo(BlockPos pos, EnumFacing onFace, IBlockAccess worldIn) {
 		TileEntity teAtPos = worldIn.getTileEntity(pos);
-		if (teAtPos == null) return false;
-		if (teAtPos.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, onFace)) return true;
+		if (teAtPos == null) {
+			Block blockAtPos = worldIn.getBlockState(pos).getBlock();
+			if (blockAtPos instanceof BlockPipe) return true;
+		} else {
+			if (teAtPos.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, onFace)) return true;
+		}
 		return false;
 	}
 
 	@Override
 	public IBlockState getActualState(IBlockState state, IBlockAccess worldIn, BlockPos pos) {
-		TileEntityPipe te = null;
-		if (worldIn.getTileEntity(pos) instanceof TileEntityPipe) {
-			te = (TileEntityPipe)worldIn.getTileEntity(pos);
+		TileEntity te = worldIn instanceof ChunkCache ? ((ChunkCache)worldIn).getTileEntity(pos, Chunk.EnumCreateEntityType.CHECK) : worldIn.getTileEntity(pos);;
+		if (te instanceof TileEntityPipe) {
+			for (EnumFacing e : EnumFacing.VALUES) {
+				boolean connect = canConnectTo(pos.offset(e), e.getOpposite(), worldIn);
+				if (te != null) connect = (connect && !((TileEntityPipe)te).disableConnection.getOrDefault(e, false));
+				state = state.withProperty(propertyMap.get(e), connect);
+			}
+			if (te != null) {
+				state = state.withProperty(opaque, ((TileEntityPipe)te).opaque);
+				if (((TileEntityPipe)te).dyeColor != null) state = state.withProperty(pipeColor, ((TileEntityPipe)te).dyeColor);
+			}
+		} else {
+			ExppipesMod.logger.info("Mismatched TE at " + pos.toString() + ", was " + (te==null?"null":te.toString()));
 		}
-		for (EnumFacing e : EnumFacing.VALUES) {
-			boolean connect = this.canConnectTo(pos.offset(e), e.getOpposite(), worldIn);
-			if (te != null) connect = (connect && !te.disableConnection.getOrDefault(e, false));
-			state = state.withProperty(propertyMap.get(e), connect);
-		}
+		
 		return state;
 	}
 

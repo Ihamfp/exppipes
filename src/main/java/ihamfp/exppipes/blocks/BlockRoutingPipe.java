@@ -28,7 +28,7 @@ public class BlockRoutingPipe extends BlockPipe {
 	
 	@Override
 	protected BlockStateContainer createBlockState() {
-		return new BlockStateContainer(this, connUP, connDOWN, connEAST, connWEST, connNORTH, connSOUTH, hasNetwork);
+		return new BlockStateContainer(this, connUP, connDOWN, connEAST, connWEST, connNORTH, connSOUTH, hasNetwork, opaque, pipeColor);
 	}
 	
 	@Override

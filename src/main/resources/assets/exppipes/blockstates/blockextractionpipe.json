@@ -1,5 +1,9 @@
 {
     "multipart": [
+        {
+        	"when": { "opaque": "true" },
+        	"apply": { "model": "exppipes:pipe_opaque", "uvlock": false}
+        },
         {   "apply": { "model": "exppipes:blockextractionpipe_center" }},
         {   "when": { "connnorth": "true" },
             "apply": { "model": "exppipes:blockpipe_side", "uvlock": false }

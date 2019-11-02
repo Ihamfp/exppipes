@@ -44,6 +44,7 @@ public class PacketInventoryRequest implements IMessage {
 			EntityPlayerMP serverPlayer = ctx.getServerHandler().player;
 			if (message.pos == null) return null;
 			serverPlayer.getServerWorld().addScheduledTask(() -> {
+				if (serverPlayer.getServerWorld().provider.getDimension() != message.pos.dimension) return;
 				if (!serverPlayer.getServerWorld().isBlockLoaded(message.pos)) return;
 				TileEntity te = serverPlayer.getServerWorld().getTileEntity(message.pos);
 				if (te == null) return;

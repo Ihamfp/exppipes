@@ -5,8 +5,10 @@ import java.util.ArrayList;
 import ihamfp.exppipes.tileentities.ModTileEntities;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.client.renderer.color.BlockColors;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
+import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
@@ -76,6 +78,20 @@ public class ModBlocks {
 			ib.setRegistryName(b.getRegistryName());
 			modItemBlocks.add(ib);
 			event.getRegistry().register(ib);
+		}
+	}
+	
+	@SubscribeEvent
+	public void registerColors(ColorHandlerEvent.Block event) {
+		BlockPipeColor blockPipeColor = new BlockPipeColor();
+		BlockColors blockColors = event.getBlockColors();
+		if (blockColors == null) {
+			
+		}
+		for (Block block : modBlocks) {
+			if (block instanceof BlockPipe) {
+				blockColors.registerBlockColorHandler(blockPipeColor, block);
+			}
 		}
 	}
 	

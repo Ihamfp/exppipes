@@ -7,13 +7,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.blocks.BlockPipe;
 import ihamfp.exppipes.common.Configs;
+import ihamfp.exppipes.common.network.PacketHandler;
+import ihamfp.exppipes.common.network.PacketSideDiscon;
 import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Items;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
@@ -24,6 +28,7 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
+import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
@@ -32,6 +37,8 @@ import net.minecraftforge.items.IItemHandler;
 public class TileEntityPipe extends TileEntity implements ITickable {
 	public PipeItemHandler itemHandler = new PipeItemHandler();
 	public Map<EnumFacing,Boolean> disableConnection = new HashMap<EnumFacing,Boolean>();
+	public EnumDyeColor dyeColor = EnumDyeColor.BLACK;
+	public boolean opaque = false;
 	
 	@Override
 	public void update() {
@@ -232,10 +239,12 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	
 	@Override
 	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
-		if (oldState.getBlock() == newState.getBlock()) {
-			return false; // only refresh if block is changed
+		if (world.isRemote) {
+			ExppipesMod.logger.info("Client update ?");
 		}
-		// remove this from network
+		if (oldState.getBlock() == newState.getBlock()) {
+			return false;
+		}
 		return super.shouldRefresh(world, pos, oldState, newState);
 	}
 
@@ -268,10 +277,18 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 		this.itemHandler.deserializeNBT(compound.getCompoundTag("itemhandler"), this.getWorld());
 		NBTTagCompound discon = compound.getCompoundTag("discon");
 		for (EnumFacing f : EnumFacing.VALUES) {
-			if (discon.getBoolean(f.getName())) {
-				this.disableConnection.put(f, true);
+			boolean isDisco = discon.getBoolean(f.getName());
+			if (isDisco != this.disableConnection.getOrDefault(f, false)) {
+				//PacketHandler.INSTANCE.sendToAllTracking(new PacketSideDiscon(new BlockDimPos(this), f, isDisco), new TargetPoint(this.world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 0.0));
+				if (isDisco) {
+					this.disableConnection.put(f, true);
+				} else {
+					this.disableConnection.remove(f);
+				}
 			}
 		}
+		this.opaque = compound.getBoolean("opaque");
+		this.dyeColor = EnumDyeColor.byDyeDamage(compound.getByte("color"));
 		
 		super.readFromNBT(compound);
 	}
@@ -285,6 +302,10 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 			disCon.setBoolean(f.getName(), this.disableConnection.get(f));
 		}
 		compound.setTag("discon", disCon);
+		
+		compound.setBoolean("opaque", this.opaque);
+		compound.setByte("color", (byte)this.dyeColor.getDyeDamage());
+		
 		return super.writeToNBT(compound);
 	}
 	
@@ -292,12 +313,14 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 		NBTTagCompound nbtTag = new NBTTagCompound();
 		if (!this.world.isRemote) { // sending from the server
 			nbtTag.setTag("itemhandler", this.itemHandler.serializeNBT());
+			NBTTagCompound disCon = new NBTTagCompound();
+			for (EnumFacing f : this.disableConnection.keySet()) {
+				disCon.setBoolean(f.getName(), this.disableConnection.get(f));
+			}
+			nbtTag.setTag("discon", disCon);
+			nbtTag.setBoolean("opaque", this.opaque);
+			nbtTag.setByte("color", (byte)this.dyeColor.getDyeDamage());
 		}
-		NBTTagCompound disCon = new NBTTagCompound();
-		for (EnumFacing f : this.disableConnection.keySet()) {
-			disCon.setBoolean(f.getName(), this.disableConnection.get(f));
-		}
-		nbtTag.setTag("discon", disCon);
 		return nbtTag;
 	}
 	
@@ -310,23 +333,31 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
 		NBTTagCompound nbtTag = pkt.getNbtCompound();
 		if (this.world.isRemote) { // receiving from the client
+			ExppipesMod.logger.info("Server packet to client !");
 			if (nbtTag.hasKey("itemhandler")) {
 				this.itemHandler.deserializeNBT(nbtTag.getCompoundTag("itemhandler"));
 			}
+			IBlockState state = this.world.getBlockState(this.pos);
 			if (nbtTag.hasKey("discon")) {
 				NBTTagCompound discon = nbtTag.getCompoundTag("discon");
-				IBlockState state = this.world.getBlockState(this.pos);
 				for (EnumFacing f : EnumFacing.VALUES) {
-					state = state.withProperty(BlockPipe.propertyMap.get(f), discon.getBoolean(f.getName()));
+					state = state.withProperty(BlockPipe.propertyMap.get(f), !discon.getBoolean(f.getName()));
 					if (discon.getBoolean(f.getName())) {
 						this.disableConnection.put(f, true);
 					} else {
 						this.disableConnection.remove(f);
 					}
 				}
-				if (!state.equals(this.world.getBlockState(this.pos))) {
-					this.world.notifyBlockUpdate(this.pos, this.world.getBlockState(pos), state, 3);
-				}
+			}
+			this.opaque = nbtTag.getBoolean("opaque");
+			state = state.withProperty(BlockPipe.opaque, this.opaque);
+			this.dyeColor = EnumDyeColor.byDyeDamage(nbtTag.getByte("color"));
+			state = state.withProperty(BlockPipe.pipeColor, this.dyeColor);
+			
+			if (!state.equals(this.world.getBlockState(this.pos))) {
+				this.world.markBlockRangeForRenderUpdate(this.pos, this.pos);
+				this.world.notifyBlockUpdate(this.pos, this.world.getBlockState(this.pos), state, 2);
+				//this.world.setBlockState(this.pos, state, 2);
 			}
 		}
 		super.onDataPacket(net, pkt);

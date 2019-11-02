@@ -58,7 +58,7 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 	// Other nodes by direction
 	//@Deprecated
 	//public Map<EnumFacing, TileEntityRoutingPipe> connectedNodes = new HashMap<EnumFacing, TileEntityRoutingPipe>();
-	public Map<EnumFacing, BlockDimPos> connectedNodesPos = new HashMap<EnumFacing, BlockDimPos>();
+	public HashMap<EnumFacing, BlockDimPos> connectedNodesPos = new HashMap<EnumFacing, BlockDimPos>();
 	public Map<EnumFacing, Integer> nodeDist = new HashMap<EnumFacing, Integer>(); // unused for now
 	
 	// this pipe's config
@@ -115,7 +115,9 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 	/***
 	 * Get all connected nodes, on each side.
 	 */
-	public void searchNodes() {
+	public boolean searchNodes() {
+		@SuppressWarnings("unchecked")
+		HashMap<EnumFacing,BlockDimPos> oldConnections = (this.connectedNodesPos instanceof HashMap && this.connectedNodesPos != null?(HashMap<EnumFacing, BlockDimPos>) this.connectedNodesPos.clone():null);
 		this.connectedNodesPos.clear();
 		
 		List<BlockPos> checkedPipes = new ArrayList<BlockPos>();
@@ -205,16 +207,20 @@ public class TileEntityRoutingPipe extends TileEntityPipe implements SimpleCompo
 		}
 		
 		if (this.connectedNodesPos.size() == 0) this.network = null; // fix this if ever needed, like with tesseract pipes or such
+		
+		/*for (EnumFacing e : EnumFacing.VALUES) {
+			if (oldConnections.get(e) != this.connectedNodesPos.get(e)) return true;
+		}*/
+		
+		return !oldConnections.equals(this.connectedNodesPos);
 	}
 	
 	@Override
 	public void serverUpdate() {
 		IBlockState currentState = this.world.getBlockState(this.pos);
 		if (this.nextUpdate <= 0) {
-			this.searchNodes();
+			if (this.searchNodes()) this.world.notifyBlockUpdate(this.pos, currentState, currentState, 2);
 			this.nextUpdate = Configs.updateInterval;
-
-			this.world.notifyBlockUpdate(this.pos, currentState, currentState, 2);
 		}
 		if (!this.sinkConfig.toString().equals(this.oldSinkConfig)) {
 			this.oldSinkConfig = this.sinkConfig.toString();

@@ -1,6 +1,7 @@
 package ihamfp.exppipes.items;
 
 import ihamfp.exppipes.ExppipesMod;
+import ihamfp.exppipes.tileentities.TileEntityPipe;
 import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -32,6 +33,15 @@ public class ItemPipeDebug extends Item {
 				}
 				if (terp.network != null) {
 					player.sendMessage(new TextComponentString("Network: " + terp.network.toString()));
+				}
+			}
+			if (te instanceof TileEntityPipe) {
+				TileEntityPipe terp = (TileEntityPipe)te;
+				if (terp.disableConnection.size() > 0) {
+					player.sendMessage(new TextComponentString("Disconnections:"));
+					for (EnumFacing f : terp.disableConnection.keySet()) {
+						player.sendMessage(new TextComponentString(" - " + f.getName()));
+					}
 				}
 			}
 		}
