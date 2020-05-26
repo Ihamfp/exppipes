@@ -45,7 +45,7 @@ public class FilterConfig implements INBTSerializable<NBTTagCompound> {
 	 * {@link Items.AIR} means "everything"
 	 */
 	public boolean doesMatch(ItemStack stack) {
-		if (this.reference.isEmpty() || this.reference.getItem() == Items.AIR) {
+		if (this.reference == null || this.reference.isEmpty() || this.reference.getItem() == Items.AIR) {
 			return !this.blacklist;
 		}
 		if (this.filterId >= 0 && Filters.filters.size() > this.filterId) {

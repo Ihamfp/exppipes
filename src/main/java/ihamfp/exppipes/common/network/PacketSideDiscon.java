@@ -3,14 +3,9 @@ package ihamfp.exppipes.common.network;
 import java.util.Map;
 
 import ihamfp.exppipes.pipenetwork.BlockDimPos;
-import ihamfp.exppipes.pipenetwork.PipeNetwork;
-import ihamfp.exppipes.tileentities.TileEntityNetworkBlock;
 import ihamfp.exppipes.tileentities.TileEntityPipe;
-import ihamfp.exppipes.tileentities.TileEntityRoutingPipe;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.world.World;
@@ -60,6 +55,7 @@ public class PacketSideDiscon implements IMessage {
 				if (!(te instanceof TileEntityPipe)) return null;
 				
 				Map<EnumFacing,Boolean> dic = ((TileEntityPipe)te).disableConnection;
+				//ExppipesMod.logger.info("Pipe @ " + message.pos.toString() + ", face " + message.face.getName() + ": " + dic.getOrDefault(message.face, false) + "->" + message.disconn);
 				if (dic.getOrDefault(message.face, false) != message.disconn) {
 					if (message.disconn) dic.put(message.face, true);
 					else dic.remove(message.face);

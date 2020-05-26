@@ -23,7 +23,7 @@ public abstract class Filter {
 	 * todo: use this somewhere
 	 */
 	public String getMatchingHint(ItemStack reference) {
-		return reference.getDisplayName();
+		return "";
 	}
 	
 	/***

@@ -7,11 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.blocks.BlockPipe;
 import ihamfp.exppipes.common.Configs;
-import ihamfp.exppipes.common.network.PacketHandler;
-import ihamfp.exppipes.common.network.PacketSideDiscon;
 import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
@@ -28,7 +25,6 @@ import net.minecraft.util.ITickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.fml.common.network.NetworkRegistry.TargetPoint;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.CapabilityItemHandler;
@@ -240,7 +236,7 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	@Override
 	public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newState) {
 		if (world.isRemote) {
-			ExppipesMod.logger.info("Client update ?");
+			//ExppipesMod.logger.info("Client update ?");
 		}
 		if (oldState.getBlock() == newState.getBlock()) {
 			return false;
@@ -332,8 +328,8 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	@Override
 	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
 		NBTTagCompound nbtTag = pkt.getNbtCompound();
-		if (this.world.isRemote) { // receiving from the client
-			ExppipesMod.logger.info("Server packet to client !");
+		if (this.world.isRemote) { // receiving on the client
+			//ExppipesMod.logger.info("Server packet to client !");
 			if (nbtTag.hasKey("itemhandler")) {
 				this.itemHandler.deserializeNBT(nbtTag.getCompoundTag("itemhandler"));
 			}

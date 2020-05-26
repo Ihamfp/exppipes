@@ -93,6 +93,8 @@ public class Filters {
 
 			@Override
 			public boolean doesMatch(ItemStack reference, ItemStack stack) {
+				if (reference == null || reference.isEmpty()) return false;
+				if (stack == null || stack.isEmpty()) return false;
 				int[] refOreIDs = OreDictionary.getOreIDs(reference);
 				int[] stackOreIDs = OreDictionary.getOreIDs(stack);
 				for (int i : refOreIDs) {
@@ -105,17 +107,18 @@ public class Filters {
 			
 			@Override
 			public String getMatchingHint(ItemStack reference) {
+				if (reference == null || reference.isEmpty()) return "invalid";
 				int[] refOreIDs = OreDictionary.getOreIDs(reference);
 				String hint = "";
-				hint.concat(OreDictionary.getOreName(refOreIDs[0]));
-				for (int i=1; i<refOreIDs.length; i++) {
-					hint.concat(", " + OreDictionary.getOreName(refOreIDs[i]));
+				for (int i=0; i<refOreIDs.length; i++) {
+					hint = hint.concat((hint.equals("")?"":", ") + OreDictionary.getOreName(refOreIDs[i]));
 				}
 				return hint;
 			}
 			
 			@Override
 			public boolean willEverMatch(ItemStack reference) {
+				if (reference == null || reference.isEmpty()) return false;
 				return OreDictionary.getOreIDs(reference).length != 0;
 			}
 		});
@@ -134,6 +137,8 @@ public class Filters {
 
 			@Override
 			public boolean doesMatch(ItemStack reference, ItemStack stack) {
+				if (reference == null || reference.isEmpty()) return false;
+				if (stack == null || stack.isEmpty()) return false;
 				int[] refOreIDs = OreDictionary.getOreIDs(reference);
 				int[] stackOreIDs = OreDictionary.getOreIDs(stack);
 				if (refOreIDs.length != stackOreIDs.length) return false;
@@ -145,17 +150,18 @@ public class Filters {
 			
 			@Override
 			public String getMatchingHint(ItemStack reference) {
+				if (reference == null || reference.isEmpty()) return "invalid";
 				int[] refOreIDs = OreDictionary.getOreIDs(reference);
 				String hint = "";
-				hint.concat(OreDictionary.getOreName(refOreIDs[0]));
-				for (int i=1; i<refOreIDs.length; i++) {
-					hint.concat(", " + OreDictionary.getOreName(refOreIDs[i]));
+				for (int i=0; i<refOreIDs.length; i++) {
+					hint = hint.concat((hint.equals("")?"":", ") + OreDictionary.getOreName(refOreIDs[i]));
 				}
 				return hint;
 			}
 			
 			@Override
 			public boolean willEverMatch(ItemStack reference) {
+				if (reference == null || reference.isEmpty()) return false;
 				return OreDictionary.getOreIDs(reference).length != 0;
 			}
 		});
@@ -174,6 +180,8 @@ public class Filters {
 
 			@Override
 			public boolean doesMatch(ItemStack reference, ItemStack stack) {
+				if (reference == null || reference.isEmpty()) return false;
+				if (stack == null || stack.isEmpty()) return false;
 				int[] refOreIDs = OreDictionary.getOreIDs(reference);
 				int[] stackOreIDs = OreDictionary.getOreIDs(stack);
 				for (int i : refOreIDs) {
@@ -188,17 +196,18 @@ public class Filters {
 			
 			@Override
 			public String getMatchingHint(ItemStack reference) {
+				if (reference == null || reference.isEmpty()) return "invalid";
 				int[] refOreIDs = OreDictionary.getOreIDs(reference);
 				String hint = "";
-				hint.concat(OreDictionary.getOreName(refOreIDs[0]).replaceAll("[A-Z][a-z]+", ""));
-				for (int i=1; i<refOreIDs.length; i++) {
-					hint.concat(", " + OreDictionary.getOreName(refOreIDs[i]).replaceAll("[A-Z][a-z]+", ""));
+				for (int i=0; i<refOreIDs.length; i++) {
+					hint = hint.concat((hint.equals("")?"":", ") + OreDictionary.getOreName(refOreIDs[i]).replaceAll("[A-Z][a-z]+", ""));
 				}
 				return hint;
 			}
 			
 			@Override
 			public boolean willEverMatch(ItemStack reference) {
+				if (reference == null || reference.isEmpty()) return false;
 				return OreDictionary.getOreIDs(reference).length != 0;
 			}
 		});
@@ -231,6 +240,24 @@ public class Filters {
 				}
 				return false;
 			}
+			
+			public String getMatchingHint(ItemStack reference) {
+				if (reference.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null)) {
+					IFluidHandlerItem refFluid = reference.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
+					IFluidTankProperties[] refProp = refFluid.getTankProperties();
+					boolean isRefEmpty = true;
+					String hint = "";
+					for (IFluidTankProperties tank : refProp) {
+						if (tank.getContents() != null && tank.getContents().amount != 0) {
+							isRefEmpty = false;
+							hint = hint.concat((hint.equals("")?"":", ") + tank.getContents().getLocalizedName());
+						}
+					}
+					if (isRefEmpty) return "any"; // Match any fluid-storing item
+					return hint;
+				}
+				return "";
+			};
 			
 			@Override
 			public boolean willEverMatch(ItemStack reference) {
@@ -325,6 +352,8 @@ public class Filters {
 
 				@Override
 				public boolean doesMatch(ItemStack reference, ItemStack stack) {
+					if (reference == null || reference.isEmpty()) return false;
+					if (stack == null || stack.isEmpty()) return false;
 					AspectList refAspectlist = AspectHelper.getObjectAspects(reference);
 					AspectList stackAspectlist = AspectHelper.getObjectAspects(stack);
 					for (Aspect refAspect : refAspectlist.getAspects()) {
@@ -335,8 +364,19 @@ public class Filters {
 					return false;
 				}
 				
+				public String getMatchingHint(ItemStack reference) {
+					if (reference == null || reference.isEmpty()) return "";
+					AspectList refAspectlist = AspectHelper.getObjectAspects(reference);
+					String hint = "";
+					for (Aspect refAspect : refAspectlist.getAspects()) {
+						hint = hint.concat((hint.equals("")?"":", ") + refAspect.getName());
+					}
+					return hint;
+				};
+				
 				@Override
 				public boolean willEverMatch(ItemStack reference) {
+					if (reference == null || reference.isEmpty()) return false;
 					return AspectHelper.getObjectAspects(reference).size() > 0;
 				}
 			});

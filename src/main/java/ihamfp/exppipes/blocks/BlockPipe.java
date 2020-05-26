@@ -111,7 +111,7 @@ public class BlockPipe extends Block {
 	@Override
 	public TileEntity createTileEntity(World world, IBlockState state) {
 		TileEntityPipe newTE = new TileEntityPipe();
-		if (world != null) ExppipesMod.logger.info("Created TE in " + (world.isRemote?"remote":"server") + " world");
+		//if (world != null) ExppipesMod.logger.info("Created TE in " + (world.isRemote?"remote":"server") + " world");
 		return newTE;
 	}
 
@@ -163,14 +163,14 @@ public class BlockPipe extends Block {
 	// Save me Obi-wan Kenobi, you're our last hope.
 	@Override
 	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-		if (!worldIn.isRemote) ExppipesMod.logger.info(hand.name() + "Click !");
+		//if (!worldIn.isRemote) ExppipesMod.logger.info(hand.name() + "Click !");
 		// Opacity/color
 		if (worldIn.getTileEntity(pos) instanceof TileEntityPipe && !worldIn.isRemote) {
 			TileEntityPipe te = (TileEntityPipe) worldIn.getTileEntity(pos);
 			ItemStack heldItem = playerIn.getHeldItem(hand);
 			if (heldItem.getItem() instanceof ItemDye) { // TODO support oreDict dye
 				EnumDyeColor dyeColor = EnumDyeColor.byDyeDamage(heldItem.getMetadata());
-				ExppipesMod.logger.info("New color " + dyeColor.getName() + ", was " + (te.opaque?state.getValue(pipeColor).getName():"clear"));
+				//ExppipesMod.logger.info("New color " + dyeColor.getName() + ", was " + (te.opaque?state.getValue(pipeColor).getName():"clear"));
 				te.opaque = true;
 				te.dyeColor = dyeColor;
 				worldIn.setBlockState(pos, state.withProperty(opaque, true).withProperty(pipeColor, dyeColor), 3);
@@ -180,7 +180,6 @@ public class BlockPipe extends Block {
 		// Connection/Disconnection
 		if (hand == EnumHand.MAIN_HAND && worldIn.getTileEntity(pos) instanceof TileEntityPipe) {
 			if (playerIn.isSneaking()) {
-				ExppipesMod.logger.info("DisClick!");
 				// get face to connect/disconnect
 				EnumFacing f = null;
 				if (Utils.bbContainsEq(bbCENTER, hitX, hitY, hitZ)) { // clicked on center/unconnected side
@@ -195,7 +194,7 @@ public class BlockPipe extends Block {
 				// connect/disconnect
 				if (f == null) return super.onBlockActivated(worldIn, pos, state, playerIn, hand, facing, hitX, hitY, hitZ);
 				TileEntityPipe te = (TileEntityPipe) worldIn.getTileEntity(pos);
-				if (!worldIn.isRemote && this.canConnectTo(pos.offset(f), f.getOpposite(), worldIn)) {
+				if (!worldIn.isRemote) {
 					if (te.disableConnection.getOrDefault(f, false)) {
 						te.disableConnection.remove(f);
 					}
@@ -203,9 +202,9 @@ public class BlockPipe extends Block {
 						te.disableConnection.put(f, true);
 					}
 					PacketHandler.INSTANCE.sendToAllTracking(new PacketSideDiscon(new BlockDimPos(te), f, te.disableConnection.getOrDefault(f, false)), new TargetPoint(worldIn.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 0.0));
-					worldIn.setBlockState(pos, state.withProperty(propertyMap.get(f), !te.disableConnection.getOrDefault(f,false)), 2);
-					ExppipesMod.logger.info("Face: " + f.getName() + " => " + te.disableConnection.getOrDefault(f,false).toString());
+					worldIn.setBlockState(pos, state.withProperty(propertyMap.get(f), te.disableConnection.getOrDefault(f,false)), 2);
 				}
+				// connect/disconnect other pipe
 				if (!worldIn.isRemote && worldIn.getTileEntity(pos.offset(f)) instanceof TileEntityPipe) {
 					BlockPos offsetPos = pos.offset(f);
 					TileEntityPipe other = (TileEntityPipe) worldIn.getTileEntity(offsetPos);
@@ -265,7 +264,7 @@ public class BlockPipe extends Block {
 				if (((TileEntityPipe)te).dyeColor != null) state = state.withProperty(pipeColor, ((TileEntityPipe)te).dyeColor);
 			}
 		} else {
-			ExppipesMod.logger.info("Mismatched TE at " + pos.toString() + ", was " + (te==null?"null":te.toString()));
+			//ExppipesMod.logger.info("Mismatched TE at " + pos.toString() + ", was " + (te==null?"null":te.toString()));
 		}
 		
 		return state;

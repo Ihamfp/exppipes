@@ -129,13 +129,22 @@ public class GuiContainerPipeConfig extends GuiContainerDecorated {
 				} else {
 					int filterId = 0;
 					boolean blacklist = false;
+					String hint = "";
 					if (this.inventorySlots instanceof ContainerPipeConfig) {
 						if (conf.filters.size() > button.id/2) {
 							filterId = conf.filters.get(button.id/2).filterId;
 							blacklist = conf.filters.get(button.id/2).blacklist;
+							ItemStack ref = conf.filters.get(button.id/2).reference;
+							if (ref != null && !ref.isEmpty()) hint = Filters.filters.get(filterId).getMatchingHint(ref);
 						}
 					}
 					filterHoverText.set(0, "Filter: " + Filters.filters.get(filterId).getLongName() + (blacklist?" blacklist":""));
+					if (!hint.equals("")) {
+						if (filterHoverText.size() < 2) filterHoverText.add(hint);
+						else filterHoverText.set(1, hint);
+					} else {
+						if (filterHoverText.size() > 1) filterHoverText.remove(1);
+					}
 					this.drawHoveringText(filterHoverText, mouseX-guiLeft, mouseY-guiTop);
 				}
 			}
