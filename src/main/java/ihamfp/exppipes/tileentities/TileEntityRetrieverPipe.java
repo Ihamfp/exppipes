@@ -13,7 +13,7 @@ public class TileEntityRetrieverPipe extends TileEntitySupplierPipe {
 	public void serverUpdate() {
 		super.serverUpdate();
 		
-		if (this.requests.size() == 0 && this.supplyConfig.filters.size() == 0) {
+		if (this.network != null && this.requests.size() == 0 && this.supplyConfig.filters.size() == 0) {
 			FilterConfig reqFilter = this.insertableMatchingFilter(everything);
 			if (reqFilter != null) this.requests.put(everything, this.network.request(new BlockDimPos(this), reqFilter, 1));
 		}
