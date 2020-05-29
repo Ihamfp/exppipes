@@ -1,13 +1,18 @@
 package ihamfp.exppipes.blocks;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import ihamfp.exppipes.tileentities.ModTileEntities;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.color.BlockColors;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.TextComponentTranslation;
+import net.minecraft.world.World;
 import net.minecraftforge.client.event.ColorHandlerEvent;
 import net.minecraftforge.client.event.ModelRegistryEvent;
 import net.minecraftforge.client.model.ModelLoader;
@@ -74,13 +79,22 @@ public class ModBlocks {
 	@SubscribeEvent
 	public void registerItemBlocks(RegistryEvent.Register<Item> event) {
 		for (Block b : modBlocks) {
-			Item ib = new ItemBlock(b);
+			Item ib = new ItemBlock(b) {
+				@Override
+				public void addInformation(ItemStack stack, World worldIn, List<String> tooltip, ITooltipFlag flagIn) {
+					super.addInformation(stack, worldIn, tooltip, flagIn);
+					
+					TextComponentTranslation tct = new TextComponentTranslation(b.getTranslationKey() + ".tooltip");
+					if (!tct.getUnformattedText().equals(b.getTranslationKey() + ".tooltip")) tooltip.add(tct.getFormattedText());
+				}
+			};
 			ib.setRegistryName(b.getRegistryName());
 			modItemBlocks.add(ib);
 			event.getRegistry().register(ib);
 		}
 	}
 	
+	@SideOnly(Side.CLIENT)
 	@SubscribeEvent
 	public void registerColors(ColorHandlerEvent.Block event) {
 		BlockPipeColor blockPipeColor = new BlockPipeColor();

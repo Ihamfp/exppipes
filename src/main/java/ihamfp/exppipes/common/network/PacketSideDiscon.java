@@ -2,6 +2,7 @@ package ihamfp.exppipes.common.network;
 
 import java.util.Map;
 
+import ihamfp.exppipes.ExppipesMod;
 import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.tileentities.TileEntityPipe;
 import io.netty.buffer.ByteBuf;
@@ -49,7 +50,8 @@ public class PacketSideDiscon implements IMessage {
 		public IMessage onMessage(PacketSideDiscon message, MessageContext ctx) {
 			if (message.pos == null) return null;
 			Minecraft.getMinecraft().addScheduledTask(() -> {
-				World world = Minecraft.getMinecraft().world;
+				World world = ExppipesMod.proxy.getClientWorld();
+				if (world == null) return null;
 				if (!world.isBlockLoaded(message.pos)) return null;
 				TileEntity te = world.getTileEntity(message.pos);
 				if (!(te instanceof TileEntityPipe)) return null;
