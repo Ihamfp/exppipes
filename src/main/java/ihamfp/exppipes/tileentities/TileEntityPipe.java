@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import ihamfp.exppipes.blocks.BlockPipe;
 import ihamfp.exppipes.common.Configs;
 import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
@@ -218,14 +217,12 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 			}
 		}
 		
-		if (!this.itemHandler.storedItems.isEmpty()) {
-			IBlockState currentState = this.world.getBlockState(this.pos);
-			this.world.notifyBlockUpdate(this.pos, currentState, currentState, 2);
-		}
-		
 		this.itemHandler.storedItems.removeAll(toRemove); // only keep non-empty stacks
 		
-		this.markDirty();
+		if (!this.itemHandler.storedItems.isEmpty() || !toRemove.isEmpty()) {
+			this.markDirty();
+			this.notifyBlockUpdate();
+		}
 	}
 	
 	@SideOnly(Side.CLIENT)
@@ -267,6 +264,11 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 		}
 		return super.getCapability(capability, facing);
 	}
+	
+	private void notifyBlockUpdate() {
+		final IBlockState state = this.getWorld().getBlockState(this.getPos());
+		this.getWorld().notifyBlockUpdate(getPos(), state, state, 3);
+	}
 
 	@Override
 	public void readFromNBT(NBTTagCompound compound) {
@@ -275,7 +277,7 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 		for (EnumFacing f : EnumFacing.VALUES) {
 			boolean isDisco = discon.getBoolean(f.getName());
 			if (isDisco != this.disableConnection.getOrDefault(f, false)) {
-				//PacketHandler.INSTANCE.sendToAllTracking(new PacketSideDiscon(new BlockDimPos(this), f, isDisco), new TargetPoint(this.world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 0.0));
+				//if (!this.world.isRemote) PacketHandler.INSTANCE.sendToAllTracking(new PacketSideDiscon(new BlockDimPos(this), f, isDisco), new TargetPoint(this.world.provider.getDimension(), pos.getX(), pos.getY(), pos.getZ(), 0.0));
 				if (isDisco) {
 					this.disableConnection.put(f, true);
 				} else {
@@ -307,16 +309,7 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	
 	public NBTTagCompound getUpdateTag() {
 		NBTTagCompound nbtTag = new NBTTagCompound();
-		if (!this.world.isRemote) { // sending from the server
-			nbtTag.setTag("itemhandler", this.itemHandler.serializeNBT());
-			NBTTagCompound disCon = new NBTTagCompound();
-			for (EnumFacing f : this.disableConnection.keySet()) {
-				disCon.setBoolean(f.getName(), this.disableConnection.get(f));
-			}
-			nbtTag.setTag("discon", disCon);
-			nbtTag.setBoolean("opaque", this.opaque);
-			nbtTag.setByte("color", (byte)this.dyeColor.getDyeDamage());
-		}
+		this.writeToNBT(nbtTag);
 		return nbtTag;
 	}
 	
@@ -328,34 +321,7 @@ public class TileEntityPipe extends TileEntity implements ITickable {
 	@Override
 	public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt) {
 		NBTTagCompound nbtTag = pkt.getNbtCompound();
-		if (this.world.isRemote) { // receiving on the client
-			//ExppipesMod.logger.info("Server packet to client !");
-			if (nbtTag.hasKey("itemhandler")) {
-				this.itemHandler.deserializeNBT(nbtTag.getCompoundTag("itemhandler"));
-			}
-			IBlockState state = this.world.getBlockState(this.pos);
-			if (nbtTag.hasKey("discon")) {
-				NBTTagCompound discon = nbtTag.getCompoundTag("discon");
-				for (EnumFacing f : EnumFacing.VALUES) {
-					state = state.withProperty(BlockPipe.propertyMap.get(f), !discon.getBoolean(f.getName()));
-					if (discon.getBoolean(f.getName())) {
-						this.disableConnection.put(f, true);
-					} else {
-						this.disableConnection.remove(f);
-					}
-				}
-			}
-			this.opaque = nbtTag.getBoolean("opaque");
-			state = state.withProperty(BlockPipe.opaque, this.opaque);
-			this.dyeColor = EnumDyeColor.byDyeDamage(nbtTag.getByte("color"));
-			state = state.withProperty(BlockPipe.pipeColor, this.dyeColor);
-			
-			if (!state.equals(this.world.getBlockState(this.pos))) {
-				this.world.markBlockRangeForRenderUpdate(this.pos, this.pos);
-				this.world.notifyBlockUpdate(this.pos, this.world.getBlockState(this.pos), state, 2);
-				//this.world.setBlockState(this.pos, state, 2);
-			}
-		}
-		super.onDataPacket(net, pkt);
+		this.readFromNBT(nbtTag);
+		this.notifyBlockUpdate();
 	}
 }

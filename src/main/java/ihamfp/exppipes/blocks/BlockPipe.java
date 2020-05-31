@@ -24,6 +24,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Items;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.ItemDye;
 import net.minecraft.item.ItemStack;
@@ -159,8 +160,6 @@ public class BlockPipe extends Block {
 		return -1;
 	}
 	
-	// FIXME found the final problem: my future me, you need to check if the pipe can connect to another pipe that's normally disconnected.
-	// Save me Obi-wan Kenobi, you're our last hope.
 	@Override
 	public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
 		//if (!worldIn.isRemote) ExppipesMod.logger.info(hand.name() + "Click !");
@@ -173,9 +172,18 @@ public class BlockPipe extends Block {
 				//ExppipesMod.logger.info("New color " + dyeColor.getName() + ", was " + (te.opaque?state.getValue(pipeColor).getName():"clear"));
 				te.opaque = true;
 				te.dyeColor = dyeColor;
+				te.markDirty();
 				worldIn.setBlockState(pos, state.withProperty(opaque, true).withProperty(pipeColor, dyeColor), 3);
 				return true;
+			} else if (te.opaque && heldItem.getItem() == Items.WATER_BUCKET) {
+				te.opaque = false;
+				te.markDirty();
+				worldIn.setBlockState(pos, state.withProperty(opaque, false));
+				return true;
 			}
+		}
+		if (worldIn.isRemote && playerIn.getHeldItem(hand).getItem() == Items.WATER_BUCKET && state.getActualState(worldIn, pos).getValue(opaque)) {
+			return true;
 		}
 		// Connection/Disconnection
 		if (hand == EnumHand.MAIN_HAND && worldIn.getTileEntity(pos) instanceof TileEntityPipe) {
@@ -220,8 +228,8 @@ public class BlockPipe extends Block {
 				}
 				te.markDirty();
 				return true;
-			} else if (this.getGuiID() > 0 && !worldIn.isRemote) {
-				playerIn.openGui(ExppipesMod.instance, this.getGuiID(), worldIn, pos.getX(), pos.getY(), pos.getZ());
+			} else if (this.getGuiID() > 0) {
+				if (!worldIn.isRemote) playerIn.openGui(ExppipesMod.instance, this.getGuiID(), worldIn, pos.getX(), pos.getY(), pos.getZ());
 				return true;
 			}
 		}

@@ -10,7 +10,6 @@ import ihamfp.exppipes.pipenetwork.BlockDimPos;
 import ihamfp.exppipes.pipenetwork.ItemDirection;
 import ihamfp.exppipes.pipenetwork.Request;
 import ihamfp.exppipes.tileentities.pipeconfig.ConfigRoutingPipe;
-import ihamfp.exppipes.tileentities.pipeconfig.FilterConfig;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -68,21 +67,33 @@ public class TileEntityStockKeeperPipe extends TileEntityRoutingPipe {
 			}
 		}
 		
-		if (ih != null) {
-			// check for things to request
-			for (int i=0;i<Integer.min(ih.getSlots(), stockConfig.filters.size());i++) {
-				FilterConfig fi = this.stockConfig.filters.get(i);
-				if (!fi.doesMatch(ih.getStackInSlot(i))) { // item doesn't match - extract it
-					ItemStack is = ih.extractItem(i, ih.getSlotLimit(i), false);
-					this.itemHandler.insertedItems.add(new ItemDirection(is, foundFace, null, this.world.getTotalWorldTime()));
-				} else if (fi.reference.getCount() < ih.getStackInSlot(i).getCount()) { // too much items
-					ItemStack is = ih.extractItem(i, ih.getStackInSlot(i).getCount()-fi.reference.getCount(), false);
-					this.itemHandler.insertedItems.add(new ItemDirection(is, foundFace, null, this.world.getTotalWorldTime()));
-				}
-				if (ih.getStackInSlot(i).isEmpty() || (fi.doesMatch(ih.getStackInSlot(i)) && ih.getStackInSlot(i).getCount() < fi.reference.getCount())) { // order more things
-					if (this.network != null && !this.requests.containsKey(i) && this.coolDown.getOrDefault(i, 0L) < this.world.getTotalWorldTime()) {
-						this.requests.put(i, this.network.request(new BlockDimPos(this), fi, fi.reference.getCount()-ih.getStackInSlot(i).getCount()));
+		if (ih != null && this.network != null) {
+			// New version
+			// check for missing items
+			int[] neededItems = new int[stockConfig.filters.size()];
+			for (int i=0; i<this.stockConfig.filters.size(); i++) {
+				neededItems[i] = this.stockConfig.filters.get(i).reference.getCount();
+			}
+			
+			for (int s=0; s<ih.getSlots(); s++) {
+				ItemStack stackInSlot = ih.getStackInSlot(s);
+				if (stackInSlot.isEmpty()) continue;
+				for (int i=0; i<this.stockConfig.filters.size(); i++) {
+					if (this.stockConfig.filters.get(i).doesMatch(stackInSlot)) {
+						neededItems[i] -= stackInSlot.getCount();
+						if (neededItems[i] < 0) {
+							ItemStack extracted = ih.extractItem(s, -neededItems[i], false);
+							neededItems[i] += extracted.getCount();
+							this.itemHandler.insertedItems.add(new ItemDirection(extracted, foundFace, null, this.world.getTotalWorldTime()));
+						}
+						break;
 					}
+				}
+			}
+			
+			for (int i=0; i<neededItems.length; i++) {
+				if (!this.requests.containsKey(i) && this.coolDown.getOrDefault(i, 0L)  < this.world.getTotalWorldTime()) {
+					if (neededItems[i] > 0) this.requests.put(i, this.network.request(new BlockDimPos(this), this.stockConfig.filters.get(i), neededItems[i]));
 				}
 			}
 		}

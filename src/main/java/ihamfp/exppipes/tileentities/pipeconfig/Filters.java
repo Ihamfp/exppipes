@@ -6,6 +6,7 @@ import java.util.List;
 import forestry.api.genetics.AlleleManager;
 import forestry.api.genetics.IIndividual;
 import forestry.api.genetics.ISpeciesRoot;
+import gregtech.api.GTValues;
 import gregtech.api.capability.GregtechCapabilities;
 import gregtech.api.capability.IElectricItem;
 import ihamfp.exppipes.ExppipesMod;
@@ -226,6 +227,8 @@ public class Filters {
 
 			@Override
 			public boolean doesMatch(ItemStack reference, ItemStack stack) {
+				if (reference == null || reference.isEmpty()) return false;
+				if (stack == null || stack.isEmpty()) return false;
 				if (reference.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null) && stack.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null)) {
 					IFluidHandlerItem refFluid = reference.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
 					IFluidTankProperties[] refProp = refFluid.getTankProperties();
@@ -242,6 +245,7 @@ public class Filters {
 			}
 			
 			public String getMatchingHint(ItemStack reference) {
+				if (reference == null || reference.isEmpty()) return "";
 				if (reference.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null)) {
 					IFluidHandlerItem refFluid = reference.getCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
 					IFluidTankProperties[] refProp = refFluid.getTankProperties();
@@ -261,6 +265,7 @@ public class Filters {
 			
 			@Override
 			public boolean willEverMatch(ItemStack reference) {
+				if (reference == null || reference.isEmpty()) return false;
 				return reference.hasCapability(CapabilityFluidHandler.FLUID_HANDLER_ITEM_CAPABILITY, null);
 			};
 		});
@@ -278,6 +283,9 @@ public class Filters {
 
 			@Override
 			public boolean doesMatch(ItemStack reference, ItemStack stack) {
+				if (reference == null || reference.isEmpty()) return false;
+				if (stack == null || stack.isEmpty()) return false;
+				
 				if (reference.hasCapability(CapabilityEnergy.ENERGY, null) && stack.hasCapability(CapabilityEnergy.ENERGY, null)) {
 					IEnergyStorage refEnergy = reference.getCapability(CapabilityEnergy.ENERGY, null);
 					IEnergyStorage stackEnergy = stack.getCapability(CapabilityEnergy.ENERGY, null);
@@ -291,8 +299,23 @@ public class Filters {
 				return false;
 			}
 			
+			public String getMatchingHint(ItemStack reference) {
+				if (reference == null || reference.isEmpty()) return "";
+				String hint = "";
+				if (reference.hasCapability(CapabilityEnergy.ENERGY, null)) {
+					IEnergyStorage refEnergy = reference.getCapability(CapabilityEnergy.ENERGY, null);
+					hint += (Math.round(1000.0*refEnergy.getEnergyStored()/refEnergy.getMaxEnergyStored())/10) + " %";
+				} else if (Loader.isModLoaded("gregtech") && reference.hasCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null)) {
+					IElectricItem refElectric = reference.getCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null);
+					hint += (Math.round(1000.0*refElectric.getCharge()/refElectric.getMaxCharge())/10) + " %";
+					hint += ", " + GTValues.VN[refElectric.getTier()];
+				}
+				return hint;
+			};
+			
 			@Override
 			public boolean willEverMatch(ItemStack reference) {
+				if (reference == null || reference.isEmpty()) return false;
 				if (Loader.isModLoaded("gregtech") && reference.hasCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null)) {
 					return true;
 				}
@@ -313,6 +336,9 @@ public class Filters {
 
 			@Override
 			public boolean doesMatch(ItemStack reference, ItemStack stack) {
+				if (reference == null || reference.isEmpty()) return false;
+				if (stack == null || stack.isEmpty()) return false;
+				
 				if (reference.hasCapability(CapabilityEnergy.ENERGY, null) && stack.hasCapability(CapabilityEnergy.ENERGY, null)) {
 					IEnergyStorage refEnergy = reference.getCapability(CapabilityEnergy.ENERGY, null);
 					IEnergyStorage stackEnergy = stack.getCapability(CapabilityEnergy.ENERGY, null);
@@ -326,8 +352,23 @@ public class Filters {
 				return false;
 			}
 			
+			public String getMatchingHint(ItemStack reference) {
+				if (reference == null || reference.isEmpty()) return "";
+				String hint = "";
+				if (reference.hasCapability(CapabilityEnergy.ENERGY, null)) {
+					IEnergyStorage refEnergy = reference.getCapability(CapabilityEnergy.ENERGY, null);
+					hint += (Math.round(1000.0*refEnergy.getEnergyStored()/refEnergy.getMaxEnergyStored())/10) + " %";
+				} else if (Loader.isModLoaded("gregtech") && reference.hasCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null)) {
+					IElectricItem refElectric = reference.getCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null);
+					hint += (Math.round(1000.0*refElectric.getCharge()/refElectric.getMaxCharge())/10) + " %";
+					hint += ", " + GTValues.VN[refElectric.getTier()];
+				}
+				return hint;
+			};
+			
 			@Override
 			public boolean willEverMatch(ItemStack reference) {
+				if (reference == null || reference.isEmpty()) return false;
 				if (Loader.isModLoaded("gregtech") && reference.hasCapability(GregtechCapabilities.CAPABILITY_ELECTRIC_ITEM, null)) {
 					return true;
 				}
@@ -399,6 +440,9 @@ public class Filters {
 
 				@Override
 				public boolean doesMatch(ItemStack reference, ItemStack stack) {
+					if (reference == null || reference.isEmpty()) return false;
+					if (stack == null || stack.isEmpty()) return false;
+					
 					IRadiationSource refRad = null;
 					IRadiationSource stackRad = null;
 					
@@ -432,6 +476,9 @@ public class Filters {
 
 				@Override
 				public boolean doesMatch(ItemStack reference, ItemStack stack) {
+					if (reference == null || reference.isEmpty()) return false;
+					if (stack == null || stack.isEmpty()) return false;
+					
 					IRadiationSource refRad = null;
 					IRadiationSource stackRad = null;
 					
@@ -452,6 +499,7 @@ public class Filters {
 				
 				@Override
 				public boolean willEverMatch(ItemStack reference) {
+					if (reference == null || reference.isEmpty()) return false;
 					return reference.hasCapability(IRadiationSource.CAPABILITY_RADIATION_SOURCE, null);
 				}
 			});
@@ -474,6 +522,9 @@ public class Filters {
 
 				@Override
 				public boolean doesMatch(ItemStack reference, ItemStack stack) {
+					if (reference == null || reference.isEmpty()) return false;
+					if (stack == null || stack.isEmpty()) return false;
+					
 					if (AlleleManager.alleleRegistry.isIndividual(stack)) {
 						IIndividual individual = AlleleManager.alleleRegistry.getIndividual(stack);
 						if (!individual.getGenome().getSpeciesRoot().isMember(reference)) return false;
@@ -485,6 +536,7 @@ public class Filters {
 				
 				@Override
 				public boolean willEverMatch(ItemStack reference) {
+					if (reference == null || reference.isEmpty()) return false;
 					return AlleleManager.alleleRegistry.isIndividual(reference);
 				}
 			});
@@ -503,6 +555,9 @@ public class Filters {
 
 				@Override
 				public boolean doesMatch(ItemStack reference, ItemStack stack) {
+					if (reference == null || reference.isEmpty()) return false;
+					if (stack == null || stack.isEmpty()) return false;
+					
 					if (AlleleManager.alleleRegistry.isIndividual(stack) && AlleleManager.alleleRegistry.isIndividual(reference)) {
 						IIndividual ref = AlleleManager.alleleRegistry.getIndividual(reference);
 						IIndividual individual = AlleleManager.alleleRegistry.getIndividual(stack);
@@ -514,6 +569,7 @@ public class Filters {
 				
 				@Override
 				public boolean willEverMatch(ItemStack reference) {
+					if (reference == null || reference.isEmpty()) return false;
 					return AlleleManager.alleleRegistry.isIndividual(reference) && AlleleManager.alleleRegistry.getIndividual(reference).isAnalyzed();
 				}
 			});

@@ -1,16 +1,19 @@
 {
+	"textures": {
+		"opaque": "exppipes:blocks/opaque"
+	},
 	"elements": [
 		{
 			"name": "Cube",
 			"from": [ 5, 5, 5 ], 
 			"to": [ 11, 11, 11 ], 
 			"faces": {
-				"north": { "texture": "exppipes:blocks/opaque", "tintindex": 0, "uv": [ 5, 5, 11, 11 ] },
-				"east": { "texture": "exppipes:blocks/opaque", "tintindex": 0, "uv": [ 5, 5, 11, 11 ] },
-				"south": { "texture": "exppipes:blocks/opaque", "tintindex": 0, "uv": [ 5, 5, 11, 11 ] },
-				"west": { "texture": "exppipes:blocks/opaque", "tintindex": 0, "uv": [ 5, 5, 11, 11 ] },
-				"up": { "texture": "exppipes:blocks/opaque", "tintindex": 0, "uv": [ 5, 5, 11, 11 ] },
-				"down": { "texture": "exppipes:blocks/opaque", "tintindex": 0, "uv": [ 5, 5, 11, 11 ] }
+				"north": { "texture": "#opaque", "tintindex": 0, "uv": [ 5, 5, 11, 11 ] },
+				"east": { "texture": "#opaque", "tintindex": 0, "uv": [ 5, 5, 11, 11 ] },
+				"south": { "texture": "#opaque", "tintindex": 0, "uv": [ 5, 5, 11, 11 ] },
+				"west": { "texture": "#opaque", "tintindex": 0, "uv": [ 5, 5, 11, 11 ] },
+				"up": { "texture": "#opaque", "tintindex": 0, "uv": [ 5, 5, 11, 11 ] },
+				"down": { "texture": "#opaque", "tintindex": 0, "uv": [ 5, 5, 11, 11 ] }
             }
         }
     ]
